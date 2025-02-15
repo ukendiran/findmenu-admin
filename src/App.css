@@ -1,0 +1,37 @@
+.container{
+    max-width: 1200px;
+    margin:"0px auto";
+}
+
+.ant-menu-light{
+    border: none !important;
+}
+
+.feature-section .ant-card-body{
+min-height: 200px !important;
+}
+
+.footer-bootom{
+    background-color: #031c10;
+    padding-top: 20px;
+}
+
+.mt60{
+    margin-top:60px;
+}
+
+.mb20{
+    margin-bottom:20px;
+}
+
+/* Add this CSS in your stylesheet */
+.custom-card .hover-image {
+    transition: transform 0.3s ease;
+    width: 100%;
+    height: auto;
+  }
+  
+  .custom-card .hover-image:hover {
+    transform: scale(1.1);
+  }
+  

@@ -1,0 +1,33 @@
+.category-card {
+    margin: "30px";  
+    height: 150px; /* Adjust to fit your design */
+    background-size: cover;
+    background-position: center;
+    border-radius: 26px; /* Smooth corners */
+    display: flex;
+    align-items: center; /* Align content at the bottom */
+    text-align: center;
+    padding: 16px;
+    color: white; /* For better visibility on dark backgrounds */
+    cursor: pointer; /* Indicates clickable cards */
+    position: relative;
+    transition: transform 0.3s ease-in-out;
+    overflow: hidden;
+    border:2px solid #eee
+  }
+  
+  /* .category-card:hover {
+    transform: scale(1.05);
+  } */
+
+  .category-card .card-content{
+    text-align: center;
+  }
+  .category-card .card-content h1 {
+    margin: 0;
+    font-size: 28px;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Adding drop shadow */
+    text-align: center;
+  }
