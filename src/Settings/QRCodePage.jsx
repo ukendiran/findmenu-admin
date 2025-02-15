@@ -8,7 +8,7 @@ import apiService from "../services/apiService";
 const QRCodePage = ({ restaurantCode }) => {
   const [qrColor, setQrColor] = useState("#000000");
   const qrCodeRef = useRef(null);
-  const url = `${apiService.appUrl}/p/${restaurantCode}`;
+  const url = `${apiService.appUrl}/${restaurantCode}`;
 
   const handleDownloadQRCode = () => {
     const qrCanvas = qrCodeRef.current?.querySelector("canvas");
@@ -29,8 +29,8 @@ const QRCodePage = ({ restaurantCode }) => {
       <Col xs={24} md={12}>
         <Space direction="vertical" size="middle">
           <div ref={qrCodeRef}>
-            <QRCode 
-              value={url} 
+            <QRCode
+              value={url}
               color={qrColor}
               bgColor="#ffffff"
               size={200}
@@ -52,8 +52,8 @@ const QRCodePage = ({ restaurantCode }) => {
         </Space>
       </Col>
       <Col xs={24} md={12}>
-        <SketchPicker 
-          color={qrColor} 
+        <SketchPicker
+          color={qrColor}
           onChangeComplete={handleColorChange}
           styles={{
             default: {

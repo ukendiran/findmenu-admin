@@ -86,7 +86,7 @@ export default function TopNavBar({
   // ✅ Profile dropdown menu
   const profileMenu = {
     items: [
-      { key: "admin/settings", icon: <SettingOutlined />, label: "Settings" },
+      { key: "settings", icon: <SettingOutlined />, label: "Settings" },
       { type: "divider" },
       { key: "logout", icon: <LogoutOutlined />, label: "Logout" },
     ],
