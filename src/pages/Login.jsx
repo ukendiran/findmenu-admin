@@ -13,7 +13,7 @@ const Login = () => {
 
   const auth = localStorage.getItem("isAuthenticated");
   if (auth) {
-    window.location.href = "/admin/dashboard";
+    window.location.href = "/dashboard";
   }
   const [loading, setLoading] = useState(false);
 
@@ -30,8 +30,8 @@ const Login = () => {
             config: result.configData,
             token: result.token,
           };
-          dispatch(login(data));         
-          navigate("/admin/dashboard");
+          dispatch(login(data));
+          navigate("/dashboard");
         } else {
           notification.warning({
             message: "Error",
@@ -58,10 +58,10 @@ const Login = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          marginTop: 50,
+          marginTop: "10%",
         }}
       >
-        <Card style={{ width: 400, padding: 20 }}>
+        <Card style={{ width: 400, padding: 20, boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", borderRadius: 10 }}>
           <Title level={2} style={{ textAlign: "center" }}>
             Login
           </Title>

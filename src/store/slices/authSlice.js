@@ -5,9 +5,7 @@ import {decryptToken} from "../../services/validateToken"
 // Retrieve initial state from localStorage with decryption
 const getInitialState = () => {
   const storedAuth = localStorage.getItem('isAuthenticated');
-  const storedToken = localStorage.getItem('token');
-  // const storedUser = localStorage.getItem('user');   
-  // const storedConfig = localStorage.getItem('config');   
+  const storedToken = localStorage.getItem('token');  
   if(storedToken){
     const token = EncryptionService.decrypt(storedToken)
     const dcreptedToken = decryptToken(token)
@@ -33,14 +31,10 @@ const authSlice = createSlice({
   reducers: {
     login(state, action) {
       state.isAuthenticated = true;
-      state.user = action.payload.user;
       state.token = action.payload.token;
-      state.config = action.payload.config;
       // Save to localStorage with encryption
       localStorage.setItem('isAuthenticated', JSON.stringify(true));
       localStorage.setItem('token', EncryptionService.encrypt(action.payload.token));
-      // localStorage.setItem('user', EncryptionService.encrypt(JSON.stringify(action.payload.user)));
-      // localStorage.setItem('config', EncryptionService.encrypt(JSON.stringify(action.payload.config)));
     },
     logout(state) {
       state.isAuthenticated = false;
@@ -50,8 +44,6 @@ const authSlice = createSlice({
       // Clear localStorage
       localStorage.removeItem('isAuthenticated');
       localStorage.removeItem('token');
-      // localStorage.removeItem('user');
-      // localStorage.removeItem('config');
     },
   },
 });
