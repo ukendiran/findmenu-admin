@@ -109,7 +109,6 @@ const SubCategory = () => {
       formData.append('restaurantId', user.restaurantId);
       formData.append('restaurantCode', user.restaurantCode);
 
-
       if (imageFile?.file) {
         formData.append('image', imageFile.file);
       }

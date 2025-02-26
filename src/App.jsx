@@ -1,7 +1,7 @@
-import { Routes, Route, BrowserRouter } from "react-router-dom";
-// import Website from "./layouts/Website";
+import { Routes, Route, BrowserRouter, useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import packageJson from "../package.json"; // Import version from package.json
 import "./App.css";
-
 
 // AdminPanel
 import AdminLayout from "./AdminLayout";
@@ -17,18 +17,28 @@ import Import from "./pages/Import";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 
+const VersionHandler = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const appVersion = packageJson.version;
 
+  useEffect(() => {
+    if (!location.search.includes("v=")) {
+      navigate(`${location.pathname}?v=${appVersion}`, { replace: true });
+    }
+  }, [location, navigate, appVersion]);
+
+  return null;
+};
 
 const App = () => {
-
   return (
     <BrowserRouter>
+      <VersionHandler />
       <Routes>
-
-
         {/* Admin Routes */}
         <Route path="/" element={<Login />} /> {/* Default route */}
-        <Route path="/login" element={<Login />} /> {/* Default route */}
+        <Route path="/login" element={<Login />} />
 
         <Route path="/" element={<AdminLayout />}>
           <Route path="dashboard" element={<Dashboard />} />
@@ -42,8 +52,6 @@ const App = () => {
           <Route path="import" element={<Import />} />
           <Route path="*" element={<NotFound />} /> {/* Catch-all route */}
         </Route>
-
-
       </Routes>
     </BrowserRouter>
   );

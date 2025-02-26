@@ -32,6 +32,8 @@ export default function Notifications() {
         youtubeLink: restaurantConfig.youtubeLink || "",
         whatsappStatus: restaurantConfig.whatsappStatus || 2,
         whatsappLink: restaurantConfig.whatsappLink || "",
+        tripadvisorStatus: restaurantConfig.tripadvisorStatus || 2,
+        tripadvisorLink: restaurantConfig.tripadvisorLink || "",
       });
     }
   }, [restaurantConfig]);
@@ -219,11 +221,25 @@ export default function Notifications() {
               </Form.Item>
             </Space>
           </Col>
+          
+          <Col sm={24} lg={12}>
+            <Space>
+              <Form.Item label="Tripadvisor">
+                <Space>
+                  <Switch
+                    checkedChildren="On"
+                    unCheckedChildren="Off"
+                    checked={formData.tripadvisorStatus === 1}
+                    onChange={(checked) => handleChange(checked, "tripadvisorStatus")}
+                  />                
+                </Space>
+              </Form.Item>
+            </Space>
+          </Col>
 
           <Button type="primary" onClick={handleSavePreferences}>
             Save Preferences
           </Button>
-
 
         </Row>
       </Form>
