@@ -24,12 +24,8 @@ const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-
-
-        {/* Admin Routes */}
         <Route path="/" element={<Login />} /> {/* Default route */}
         <Route path="/login" element={<Login />} /> {/* Default route */}
-
         <Route path="/" element={<AdminLayout />}>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="settings" element={<Settings />} />
@@ -42,8 +38,6 @@ const App = () => {
           <Route path="import" element={<Import />} />
           <Route path="*" element={<NotFound />} /> {/* Catch-all route */}
         </Route>
-
-
       </Routes>
     </BrowserRouter>
   );

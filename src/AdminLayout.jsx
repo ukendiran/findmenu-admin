@@ -20,18 +20,13 @@ const AdminLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const token = useSelector((state) => state.auth.token);
+  const user = useSelector((state) => state.auth.user);
+  const business = useSelector((state) => state.auth.business);
 
-  if (!token) {
-    window.location.href = '/login'
-  }
-
-  // Safely decrypt the token
-  const user = token?.data
   const [collapsed, setCollapsed] = useState(
     JSON.parse(localStorage.getItem("sidebarCollapsed")) || false
   );
-  const [restaurantData, setRestaurantData] = useState([]);
+  const [BusinessData, setBusinessData] = useState([]);
   const [selectedKeys, setSelectedKeys] = useState([location.pathname]);
 
   const {
@@ -41,22 +36,11 @@ const AdminLayout = () => {
   const [notificationApi, contextHolder] = notification.useNotification();
 
   useEffect(() => {
-    if (user && user.restaurantId) {
-      getRestaurantData(user.restaurantId);
-    }
+    setBusinessData(business || []);
     setSelectedKeys([location.pathname]);
   }, []);
 
-  const getRestaurantData = async (restaurantId) => {
-    try {
-      const response = await apiService.get(`/restaurantconfig/${restaurantId}`);
-      if (response.data.success) {
-        setRestaurantData(response.data.data);
-      }
-    } catch (error) {
-      console.error("Error fetching restaurant data:", error);
-    }
-  };
+
 
   const handleLogout = () => {
     dispatch(logout());
@@ -71,15 +55,14 @@ const AdminLayout = () => {
   const handleGoogleReview = async (checked) => {
     try {
       const newStatus = checked ? 1 : 2;
-      console.log(`/restaurantconfig/${user.restaurantId}`)
-      await apiService.put(`/restaurantconfig/${user.restaurantId}`, { googleReviewStatus: newStatus });
+      console.log(`/Businessconfig/${user.businessId}`)
+      await apiService.put(`/Businessconfig/${user.businessId}`, { googleReviewStatus: newStatus });
       if (checked) {
         notificationApi.success({ message: "Google Review", description: `Google Review ${checked ? "enabled" : "disabled"}.`, placement: "bottomRight" });
       } else {
         notificationApi.warning({ message: "Google Review", description: `Google Review ${checked ? "enabled" : "disabled"}.`, placement: "bottomRight" });
       }
-      setRestaurantData((prev) => ({ ...prev, googleReviewStatus: newStatus }));
-      getRestaurantData(user.restaurantId);
+      setBusinessData((prev) => ({ ...prev, googleReviewStatus: newStatus }));
     } catch (error) {
       console.log(error)
       notificationApi.error({ message: "Update Failed", description: "Failed to update Google Review.", placement: "bottomRight" });
@@ -164,7 +147,7 @@ const AdminLayout = () => {
           </Sider>
           <Layout style={{ marginLeft: collapsed ? 80 : 200 }}>
             <TopNavBar
-              restaurantData={restaurantData}
+              BusinessData={BusinessData}
               userData={user}
               collapsed={collapsed}
               handleGoogleReview={handleGoogleReview}

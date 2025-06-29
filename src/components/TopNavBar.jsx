@@ -31,7 +31,7 @@ const { Text } = Typography;
 
 export default function TopNavBar({
   userData,
-  restaurantData,
+  BusinessData,
   handleCollapsed,
   handleGoogleReview,
   collapsed,
@@ -126,7 +126,7 @@ export default function TopNavBar({
       {/* Top Right Menu */}
       <Space style={{ marginRight: 24 }}>
         Google Review
-        <Switch checkedChildren="On" unCheckedChildren="Off" checked={restaurantData.googleReviewStatus === 1} onChange={handleGoogleReview} />
+        <Switch checkedChildren="On" unCheckedChildren="Off" checked={BusinessData.googleReviewStatus === 1} onChange={handleGoogleReview} />
         <Dropdown disabled={true} trigger={["click"]} dropdownRender={() => notificationContent}>
           <Badge count={unreadCount} size="small">
             <Button type="text" icon={<BellOutlined style={{ fontSize: "18px" }} />} />
@@ -145,7 +145,7 @@ export default function TopNavBar({
 
 TopNavBar.propTypes = {
   userData: PropTypes.any,
-  restaurantData: PropTypes.any,
+  BusinessData: PropTypes.any,
   collapsed: PropTypes.bool,
   handleCollapsed: PropTypes.func,
   handleGoogleReview: PropTypes.func,

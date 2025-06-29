@@ -6,10 +6,10 @@ import apiService from "../services/apiService";
 
 export default function Notifications() {
   const [loading, setLoading] = useState(true);
-  const [restaurantConfig, setRestaurantConfig] = useState({});
+  const [businessConfig, setRestaurantConfig] = useState({});
   const [formData, setFormData] = useState({});
-  const token = useSelector((state) => state.auth.token);
-  const config = token.data;
+  // const user = useSelector((state) => state.auth.user);
+  const config = useSelector((state) => state.auth.config);
   const [notificationApi, contextHolder] = notification.useNotification();
 
   useEffect(() => {
@@ -17,32 +17,32 @@ export default function Notifications() {
   }, []);
 
   useEffect(() => {
-    if (restaurantConfig) {
+    if (businessConfig) {
       setFormData({
-        reviewStatus: restaurantConfig.reviewStatus || 2,
-        googleReviewStatus: restaurantConfig.googleReviewStatus || 2,
-        googleReviewLink: restaurantConfig.googleReviewLink || "",
-        wifiPasswordStatus: restaurantConfig.wifiPasswordStatus || 2,
-        wifiPassword: restaurantConfig.wifiPassword || "",
-        instagramStatus: restaurantConfig.instagramStatus || 2,
-        instagramLink: restaurantConfig.instagramLink || "",
-        facebookStatus: restaurantConfig.facebookStatus || 2,
-        facebookLink: restaurantConfig.facebookLink || "",
-        youtubeStatus: restaurantConfig.youtubeStatus || 2,
-        youtubeLink: restaurantConfig.youtubeLink || "",
-        whatsappStatus: restaurantConfig.whatsappStatus || 2,
-        whatsappLink: restaurantConfig.whatsappLink || "",
+        reviewStatus: businessConfig.reviewStatus || 2,
+        googleReviewStatus: businessConfig.googleReviewStatus || 2,
+        googleReviewLink: businessConfig.googleReviewLink || "",
+        wifiPasswordStatus: businessConfig.wifiPasswordStatus || 2,
+        wifiPassword: businessConfig.wifiPassword || "",
+        instagramStatus: businessConfig.instagramStatus || 2,
+        instagramLink: businessConfig.instagramLink || "",
+        facebookStatus: businessConfig.facebookStatus || 2,
+        facebookLink: businessConfig.facebookLink || "",
+        youtubeStatus: businessConfig.youtubeStatus || 2,
+        youtubeLink: businessConfig.youtubeLink || "",
+        whatsappStatus: businessConfig.whatsappStatus || 2,
+        whatsappLink: businessConfig.whatsappLink || "",
       });
     }
-  }, [restaurantConfig]);
+  }, [businessConfig]);
 
   const getData = async () => {
     try {
-      const response = await apiService.get(`/restaurantconfig/${config.restaurantId}`);
+      const response = await apiService.get(`/config/${config.businessId}`);
       setRestaurantConfig(response.data.data);
       setLoading(false);
     } catch (error) {
-      message.error("Error fetching restaurant data");
+      message.error("Error fetching business data");
       console.error(error);
       setLoading(false);
     }
@@ -63,13 +63,13 @@ export default function Notifications() {
   };
 
   const handleSavePreferences = async () => {
-    if (!restaurantConfig.id) {
+    if (!businessConfig.id) {
       message.error("Error: Configuration ID missing");
       return;
     }
 
     try {
-      await apiService.put(`/restaurantconfig/${restaurantConfig.id}`, formData);
+      await apiService.put(`/config/${businessConfig.id}`, formData);
       notificationApi.success({
         message: "Preferences Saved",
         description: "All preferences were successfully updated.",

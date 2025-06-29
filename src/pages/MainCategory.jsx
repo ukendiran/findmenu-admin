@@ -26,8 +26,7 @@ const { Option } = Select;
 const MainCategory = () => {
   const [notificationApi, contextHolder] = notification.useNotification();
   const [form] = Form.useForm();
-  const token = useSelector((state) => state.auth.token);
-  const user = token.data
+  const user = useSelector((state) => state.auth.user);
   const [data, setData] = useState([]);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [currentRecord, setCurrentRecord] = useState(null);
@@ -38,15 +37,16 @@ const MainCategory = () => {
 
   useEffect(() => {
     console.log(user)
-    if (user?.restaurantId) {
-      fetchCategories(user.restaurantId);
+    if (user?.businessId) {
+      fetchCategories(user.businessId);
     }
   }, [user]);
 
-  const fetchCategories = async (restaurantId) => {
+  const fetchCategories = async (businessId) => {
     try {
       setLoading(true);
-      const response = await apiService.post(`/maincategory/list`, { restaurantId });
+      const response = await apiService.get(`/main-categories`, { businessId });
+      console.log("response", response)
       if (response.data?.data) {
         const dataWithKeys = response.data.data.map((item, index) => ({
           ...item,
@@ -123,23 +123,22 @@ const MainCategory = () => {
       formData.append('name', values.name);
       // formData.append('description', values.description);
       formData.append('status', values.status);
-      formData.append('restaurantId', user.restaurantId);
-      formData.append('restaurantCode', user.restaurantCode);
-
+      formData.append('businessId', user.businessId);
       if (imageFile?.file) {
-        formData.append('image', imageFile.file);
+        formData.append('image', imageFile.originFileObj);
       }
 
       if (currentRecord) {
-        formData.append('id', currentRecord.id);
-        await apiService.post(`/maincategory/update`, formData);
+        formData.append('_method', 'PUT');
+        await apiService.post(`/main-categories/${currentRecord.id}`, formData);
         notificationApi.success({ message: "Updated", description: "Category updated successfully!" });
       } else {
-        await apiService.post(`/maincategory/create`, formData);
+        formData.append('_method', 'POST');
+        await apiService.post(`/main-categories`, formData);
         notificationApi.success({ message: "Created", description: "Category created successfully!" });
       }
 
-      fetchCategories(user.restaurantId);
+      fetchCategories(user.businessId);
       handleDrawerCancel();
     } catch (error) {
       notificationApi.error({
@@ -157,7 +156,7 @@ const MainCategory = () => {
         try {
           await apiService.delete(`/maincategory/${record.id}`);
           notificationApi.success({ message: "Deleted", description: "Category deleted successfully!" });
-          fetchCategories(user.restaurantId);
+          fetchCategories(user.businessId);
         } catch (error) {
           notificationApi.error({
             message: "Delete Failed",
@@ -172,7 +171,7 @@ const MainCategory = () => {
   const handleStatus = async (checked, record) => {
     try {
       const status = checked ? 1 : 2;
-      await apiService.put(`/maincategory/update/${record.id}`, { status });
+      await apiService.put(`/main-categories/${record.id}`, { status, businessId: user.businessId });
 
       setFilteredData((prevState) =>
         prevState.map((item) => (item.id === record.id ? { ...item, status } : item))
@@ -195,7 +194,7 @@ const MainCategory = () => {
   const handleAvailablity = async (checked, record) => {
     try {
       const isAvailable = checked ? 1 : 2;
-      await apiService.put(`/maincategory/update/${record.id}`, { isAvailable });
+      await apiService.put(`/main-categories/${record.id}`, { isAvailable, businessId: user.businessId });
 
       setFilteredData((prevState) =>
         prevState.map((item) => (item.id === record.id ? { ...item, isAvailable } : item))
@@ -203,7 +202,7 @@ const MainCategory = () => {
 
       notificationApi.success({
         message: "Availability Updated",
-        description: `Category "${record.name}" is now ${checked ? "available" : "unavailable"}.`,
+        description: `Category "${record.name}" is  ${checked ? "now available" : "change to unavailable"}.`,
         placement: "bottomRight",
       });
     } catch {

@@ -5,18 +5,18 @@ const { TextArea } = Input;
 import { UploadOutlined } from '@ant-design/icons';
 import apiService from "../services/apiService";
 
-export default function RestaurantDetails({ restaurantId }) {
+export default function BusinessDetails({ businessId }) {
   const [notificationApi, contextHolder] = notification.useNotification();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [imageFile, setImageFile] = useState(null);
   const [bannerImageFile, setBannerImageFile] = useState(null);
-  const [restaurantData, setRestaurantData] = useState(null);
+  const [businessData, setBusinessData] = useState(null);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
   useEffect(() => {
-    getRestaurantData();
+    getBusinessData();
   }, []);
 
   useEffect(() => {
@@ -34,13 +34,13 @@ export default function RestaurantDetails({ restaurantId }) {
   }, [successMessage]);
 
 
-  const getRestaurantData = async () => {
+  const getBusinessData = async () => {
     try {
-      const result = await apiService.get(`/restaurant/${restaurantId}`);
+      const result = await apiService.get(`/business/${businessId}`);
       const response = result.data;
       if (response.data) {
         const data = response.data;
-        setRestaurantData(data);
+        setBusinessData(data);
         form.setFieldsValue(data);
         setImageFile({ url: data.image, name: data.image });
         setBannerImageFile({ url: data.bannerImage, name: data.bannerImage });
@@ -83,17 +83,17 @@ export default function RestaurantDetails({ restaurantId }) {
         formData.append(key, values[key]);
       });
 
-      formData.append('oldImage', (restaurantData.image).replace(`${apiService.appUrl}/`, ""));
-      formData.append('oldBannerImage', (restaurantData.bannerImage).replace(`${apiService.appUrl}/`, ""));
-      formData.append('id', restaurantData.id);
-      formData.append('restaurantCode', restaurantData.restaurantCode);
+      formData.append('oldImage', (businessData.image).replace(`${apiService.appUrl}/`, ""));
+      formData.append('oldBannerImage', (businessData.bannerImage).replace(`${apiService.appUrl}/`, ""));
+      formData.append('id', businessData.id);
+      formData.append('businessCode', businessData.businessCode);
 
       if (imageFile?.file) formData.append('imageFile', imageFile.file);
       if (bannerImageFile?.file) formData.append('bannerImageFile', bannerImageFile.file);
 
-      await apiService.post("restaurant/updateProfile", formData).then((response) => {
+      await apiService.post("business/updateProfile", formData).then((response) => {
         if (response.data.success) {
-          setSuccessMessage("Restaurant details updated successfully!");
+          setSuccessMessage("Business details updated successfully!");
         } else {
           setError("Error on Update");
         }
@@ -119,17 +119,17 @@ export default function RestaurantDetails({ restaurantId }) {
           {/* Left Column */}
           <Col xs={24} sm={24} md={8} lg={8}>
             <Form.Item
-              label="Restaurant Code"
+              label="Business Code"
               name="code"
             >
-              <Input disabled placeholder="Enter restaurant name" />
+              <Input disabled placeholder="Enter business name" />
             </Form.Item>
             <Form.Item
-              label="Restaurant Name"
+              label="Business Name"
               name="name"
-              rules={[{ required: true, message: "Restaurant name is required" }]}
+              rules={[{ required: true, message: "Business name is required" }]}
             >
-              <Input placeholder="Enter restaurant name" />
+              <Input placeholder="Enter business name" />
             </Form.Item>
 
             <Form.Item
@@ -171,13 +171,13 @@ export default function RestaurantDetails({ restaurantId }) {
           {/* Logo Section */}
           <Col xs={24} sm={24} md={4} lg={4} style={{ display: "flex", alignItems: "center", flexDirection: "column" }}>
 
-            <Form.Item label="Restaurant Logo">
+            <Form.Item label="Business Logo">
               {imageFile?.url && (
                 <Image
                   width="100%"
                   style={{ maxWidth: "200px", maxHeight: "200px", borderRadius: "10px" }}
                   src={imageFile.url}
-                  alt="Restaurant Logo"
+                  alt="Business Logo"
                 />
               )}
             </Form.Item>
@@ -217,6 +217,6 @@ export default function RestaurantDetails({ restaurantId }) {
   );
 }
 
-RestaurantDetails.propTypes = {
-  restaurantId: PropTypes.any,
+BusinessDetails.propTypes = {
+  businessId: PropTypes.any,
 };

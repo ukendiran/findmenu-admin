@@ -1,4 +1,4 @@
-import { Layout, Menu, List, Avatar, Badge, message, notification, Tooltip, Space, App } from "antd";
+import { Layout, Menu, List, Avatar, Badge, notification, Tooltip, Space, App } from "antd";
 import {
   InboxOutlined,
   // InboxOutlined,
@@ -14,8 +14,7 @@ import ParagraphList from "../components/ParagraphList";
 const { Header, Content, Sider } = Layout;
 
 const Feedback = () => {
-  const token = useSelector((state) => state.auth.token);
-  const user = token.data;
+  const user = useSelector((state) => state.auth.user);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -30,8 +29,8 @@ const Feedback = () => {
     setLoading(true);
 
     try {
-      const response = await apiService.post(`/feedback/byStatus`, {
-        restaurantId: user.restaurantId,
+      const response = await apiService.get(`/feedbacks`, {
+        businessId: user.businessId,
         status: status,
       });
       if (response.data?.data) {
@@ -42,7 +41,10 @@ const Feedback = () => {
         setData(dataWithKeys);
       }
     } catch {
-      message.error("Failed to fetch feedback.");
+      notificationApi.error({
+        message: "Error",
+        description: `Failed to fetch feedback. Please try again.`,
+      });
     } finally {
       setLoading(false);
     }

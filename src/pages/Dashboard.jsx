@@ -7,8 +7,7 @@ const { Content } = Layout;
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState([]);
-  const token = useSelector((state) => state.auth.token);
-  const user = token.data
+  const user = useSelector((state) => state.auth.user);
 
   useEffect(() => {
     getDashboardData();
@@ -16,8 +15,8 @@ const Dashboard = () => {
 
   const getDashboardData = async () => {
     setDashboardData([]);
-    const response = await apiService.post("dashboard/getcount", {
-      restaurantId: user.restaurantId,
+    const response = await apiService.get(`dashboard/counts`, {
+      businessId: user.businessId,
     });
     setDashboardData(response.data.data);
   };
@@ -29,19 +28,19 @@ const Dashboard = () => {
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} md={8} lg={6}>
             <Card title="Main Categories" bordered={false}>
-              {dashboardData?.maincategory ? dashboardData?.maincategory : 0}{" "}
+              {dashboardData?.main_category_count ? dashboardData?.main_category_count : 0}{" "}
               Active
             </Card>
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
             <Card title="Sub Categories" bordered={false}>
-              {dashboardData?.subcategory ? dashboardData?.subcategory : 0}{" "}
+              {dashboardData?.sub_category_count ? dashboardData?.sub_category_count : 0}{" "}
               Active
             </Card>
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
             <Card title="Items" bordered={false}>
-              {dashboardData?.items ? dashboardData?.items : 0} Active
+              {dashboardData?.item_count ? dashboardData?.item_count : 0} Active
             </Card>
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>

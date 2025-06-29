@@ -27,8 +27,7 @@ const { Option } = Select;
 const Items = () => {
   const [form] = Form.useForm();
   const [notificationApi, contextHolder] = notification.useNotification();
-  const token = useSelector((state) => state.auth.token);
-  const user = token.data
+  const user = useSelector((state) => state.auth.user);
   const [data, setData] = useState([]);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [currentRecord, setCurrentRecord] = useState(null);
@@ -122,18 +121,18 @@ const Items = () => {
 
   useEffect(() => {
     console.log(searchText);
-    if (user?.restaurantId) {
-      fetchItems(user.restaurantId);
+    if (user?.businessId) {
+      fetchItems(user.businessId);
     }
-  }, [user?.restaurantId]);
+  }, [user?.businessId]);
 
 
 
 
-  const fetchCategories = async (restaurantId) => {
+  const fetchCategories = async (businessId) => {
     try {
-      const response = await apiService.post(`/maincategory/list`, {
-        restaurantId,
+      const response = await apiService.get(`/main-categories`, {
+        businessId,
       });
       if (response.data?.data) {
         setCategory(response.data?.data);
@@ -143,14 +142,12 @@ const Items = () => {
     }
   };
 
-  const fetchSubCategories = async (restaurantId, categoryId) => {
+  const fetchSubCategories = async (businessId, categoryId) => {
     try {
-      const response = await apiService.post(
-        `/subcategory/getbyrestaurantandcategory`,
-        {
-          restaurantId,
-          categoryId,
-        }
+      const response = await apiService.get(`/sub-categories`, {
+        businessId,
+        categoryId,
+      }
       );
       if (response.data?.data) {
         setSubCategory(response.data?.data);
@@ -160,11 +157,11 @@ const Items = () => {
     }
   };
 
-  const fetchItems = async (restaurantId) => {
+  const fetchItems = async (businessId) => {
     try {
       setLoading(true)
-      const response = await apiService.post(`/items/getitems`, {
-        restaurantId,
+      const response = await apiService.get(`/items`, {
+        businessId,
       });
       if (response.data?.data) {
         const dataWithKeys = response.data.data.map((item, index) => ({
@@ -209,11 +206,12 @@ const Items = () => {
   };
 
   const showDrawer = (record = null) => {
-    fetchCategories(user.restaurantId);
+    console.log("showDrawer", record);
+    fetchCategories(user.businessId);
 
     setCurrentRecord(record);
     if (record) {
-      fetchSubCategories(user.restaurantId, record.categoryId);
+      fetchSubCategories(user.businessId, record.categoryId);
       form.setFieldsValue(record);
       setImageFile({
         url: record.image,
@@ -241,23 +239,22 @@ const Items = () => {
       formData.append('price', values.price);
       formData.append('categoryId', values.categoryId);
       formData.append('subCategoryId', values.subCategoryId);
-      formData.append('restaurantId', user.restaurantId);
-      formData.append('restaurantCode', user.restaurantCode);
-
+      formData.append('businessId', user.businessId);
 
       if (imageFile?.file) {
-        formData.append('image', imageFile.file);
+        formData.append('image', imageFile.originFileObj);
       }
 
       if (currentRecord) {
-        formData.append('id', currentRecord.id);
-        await apiService.post(`/items/update`, formData);
+        formData.append('_method', 'PUT');
+        await apiService.post(`/items/${currentRecord.id}`, formData);
         notificationApi.success({ message: "Updated", description: "Item updated successfully!" });
       } else {
-        await apiService.post(`/items/create`, formData);
+        formData.append('_method', 'POST');
+        await apiService.post(`/items`, formData);
         notificationApi.success({ message: "Created", description: "Item created successfully!" });
       }
-      fetchItems(user.restaurantId);
+      fetchItems(user.businessId);
       handleDrawerCancel();
     } catch (error) {
       console.error("Error saving item:", error);
@@ -282,7 +279,7 @@ const Items = () => {
             message: "Deletion",
             description: "Item deleted successfully!",
           });
-          fetchItems(user.restaurantId);
+          fetchItems(user.businessId);
         } catch (error) {
           console.error("Error deleting item:", error);
           notificationApi.error({
@@ -296,7 +293,7 @@ const Items = () => {
 
   const handleCategoryChange = (value) => {
     setSubCategory([]);
-    fetchSubCategories(user.restaurantId, value);
+    fetchSubCategories(user.businessId, value);
   };
 
   const handleStatus = async (checked, record) => {

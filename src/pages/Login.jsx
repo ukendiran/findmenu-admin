@@ -20,16 +20,18 @@ const Login = () => {
   const onFinish = (values) => {
     setLoading(true);
     apiService
-      .post("auth/login", values)
+      .post("login", values)
       .then((response) => {
         const result = response.data;
         setLoading(false);
         if (result.success) {
           const data = {
-            user: result.userData,
-            config: result.configData,
-            token: result.token,
+            user: result.data.user,
+            config: result.data.config,
+            business: result.data.business,
+            token: result.data.token,
           };
+          console.log(data);
           dispatch(login(data));
           navigate("/dashboard");
         } else {

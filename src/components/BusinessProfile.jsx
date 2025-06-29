@@ -22,7 +22,7 @@ import apiService from '../../services/apiService';
 const { TextArea } = Input;
 const { Option } = Select;
 
-const RestaurantProfile = () => {
+const BusinessProfile = () => {
   const [form] = Form.useForm();
   const [profileImage, setProfileImage] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -89,7 +89,7 @@ const RestaurantProfile = () => {
 
     //   const result = await response.json();
     //   if (result.success) {
-    //     message.success('Restaurant profile saved successfully');
+    //     message.success('Business profile saved successfully');
     //     setIsEditing(false);
     //   } else {
     //     message.error(result.message || 'Failed to save profile');
@@ -122,7 +122,7 @@ const RestaurantProfile = () => {
   return (
     <div className="restaurant-profile max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Restaurant Profile</h1>
+        <h1 className="text-2xl font-bold">Business Profile</h1>
         <Button
           icon={isEditing ? <SaveOutlined /> : <EditOutlined />}
           onClick={() => {
@@ -156,7 +156,7 @@ const RestaurantProfile = () => {
               {profileImage ? (
                 <img
                   src={profileImage}
-                  alt="Restaurant"
+                  alt="Business"
                   className="w-full h-full object-cover rounded-lg"
                 />
               ) : (
@@ -169,7 +169,7 @@ const RestaurantProfile = () => {
           <div className="w-2/3 space-y-4">
             <Form.Item
               name="name"
-              label="Restaurant Name"
+              label="Business Name"
               rules={[{ required: true, message: 'Please enter restaurant name' }]}
             >
               <Input placeholder="Enter restaurant name" />
@@ -212,7 +212,7 @@ const RestaurantProfile = () => {
         <Divider />
 
         <div className="space-y-4">
-          <Form.Item name="description" label="Restaurant Description">
+          <Form.Item name="description" label="Business Description">
             <TextArea
               rows={4}
               placeholder="Tell us about your restaurant"
@@ -228,7 +228,7 @@ const RestaurantProfile = () => {
               <Switch />
             </Form.Item>
 
-            <Form.Item name="rating" label="Restaurant Rating">
+            <Form.Item name="rating" label="Business Rating">
               <Rate allowHalf disabled={!isEditing} />
             </Form.Item>
           </div>
@@ -238,4 +238,4 @@ const RestaurantProfile = () => {
   );
 };
 
-export default RestaurantProfile;
+export default BusinessProfile;

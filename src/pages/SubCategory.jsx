@@ -28,8 +28,7 @@ const { Option } = Select;
 
 const SubCategory = () => {
   const [notificationApi, contextHolder] = notification.useNotification();
-  const token = useSelector((state) => state.auth.token);
-  const user = token.data
+  const user = useSelector((state) => state.auth.user);
   const [data, setData] = useState([]);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false); // Use Drawer visibility
   const [currentRecord, setCurrentRecord] = useState(null);
@@ -41,18 +40,18 @@ const SubCategory = () => {
   const [imageFile, setImageFile] = useState(null);
 
   useEffect(() => {
-    if (user?.restaurantId) {
-      fetchSubCategories(user.restaurantId);
+    if (user?.businessId) {
+      fetchSubCategories(user.businessId);
     }
-  }, [user?.restaurantId]);
+  }, [user?.businessId]);
 
 
 
-  const fetchCategories = async (restaurantId) => {
+  const fetchCategories = async (businessId) => {
     try {
 
-      const response = await apiService.post(`/maincategory/list`, {
-        restaurantId,
+      const response = await apiService.get(`/main-categories`, {
+        businessId,
       });
       if (response.data?.data) {
         setCategory(response.data?.data);
@@ -62,11 +61,11 @@ const SubCategory = () => {
     }
   };
 
-  const fetchSubCategories = async (restaurantId) => {
+  const fetchSubCategories = async (businessId) => {
     try {
       setLoading(true)
-      const response = await apiService.post(`/subcategory/getsubcategory`, {
-        restaurantId,
+      const response = await apiService.get(`/sub-categories`, {
+        businessId,
       });
       if (response.data?.data) {
         const dataWithKeys = response.data.data.map((item, index) => ({
@@ -85,7 +84,7 @@ const SubCategory = () => {
   };
   const showDrawer = (record = null) => {
     setCurrentRecord(record);
-    fetchCategories(user?.restaurantId)
+    fetchCategories(user?.businessId)
     if (record) {
       form.setFieldsValue(record);
       setImageFile({
@@ -106,24 +105,23 @@ const SubCategory = () => {
       // formData.append('description', values.description);
       formData.append('status', values.status);
       formData.append('categoryId', values.categoryId);
-      formData.append('restaurantId', user.restaurantId);
-      formData.append('restaurantCode', user.restaurantCode);
-
-
+      formData.append('businessId', user.businessId);
+      // formData.append('businessCode', user.businessCode);
       if (imageFile?.file) {
-        formData.append('image', imageFile.file);
+        formData.append('image', imageFile.originFileObj);
       }
 
       if (currentRecord) {
-        formData.append('id', currentRecord.id);
-        await apiService.post(`/subcategory/update`, formData);
+        formData.append('_method', 'PUT');
+        await apiService.post(`/sub-categories/${currentRecord.id}`, formData);
         notificationApi.success({ message: "Updated", description: "Category updated successfully!" });
       } else {
-        await apiService.post(`/subcategory/create`, formData);
+        formData.append('_method', 'POST');
+        await apiService.post(`/sub-categories`, formData);
         notificationApi.success({ message: "Created", description: "Category created successfully!" });
       }
 
-      fetchSubCategories(user.restaurantId);
+      fetchSubCategories(user.businessId);
       handleDrawerCancel();
     } catch (error) {
       notificationApi.error({
@@ -149,7 +147,7 @@ const SubCategory = () => {
             description: "Category deleted successfully!",
             placement: "bottomRight",
           });
-          fetchSubCategories(user.restaurantId);
+          fetchSubCategories(user.businessId);
         } catch (error) {
           console.error("Error deleting category:", error);
           notificationApi.success({
@@ -264,7 +262,7 @@ const SubCategory = () => {
   const handleStatus = async (checked, record) => {
     try {
       const status = checked ? 1 : 2;
-      await apiService.put(`/subcategory/update/${record.id}`, { status });
+      await apiService.put(`/sub-categories/${record.id}`, { status, businessId: user.businessId });
 
       setFilteredData((prevState) =>
         prevState.map((item) => (item.id === record.id ? { ...item, status } : item))
@@ -287,7 +285,7 @@ const SubCategory = () => {
   const handleAvailablity = async (checked, record) => {
     try {
       const isAvailable = checked ? 1 : 2;
-      await apiService.put(`/subcategory/update/${record.id}`, { isAvailable });
+      await apiService.put(`/sub-categories/${record.id}`, { isAvailable, businessId: user.businessId });
 
       setFilteredData((prevState) =>
         prevState.map((item) => (item.id === record.id ? { ...item, isAvailable } : item))
@@ -295,7 +293,7 @@ const SubCategory = () => {
 
       notificationApi.success({
         message: "Availability Updated",
-        description: `Category "${record.name}" is now ${checked ? "available" : "unavailable"}.`,
+        description: `Category "${record.name}" is ${checked ? "now available" : "changed to unavailable"}.`,
         placement: "bottomRight",
       });
     } catch {
