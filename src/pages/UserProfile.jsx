@@ -36,7 +36,7 @@ const ProfilePage = () => {
     };
 
     apiService
-      .put(`/users/updateProfile/${user.id}`, profileData)
+      .put(`/users/${user.id}`, profileData)
       .then((response) => {
         console.log(response.data);
         if (response.data.success) {

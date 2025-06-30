@@ -73,7 +73,7 @@ const BusinessProfile = () => {
 
 
     try {
-      const response = apiService.post(`restaurant/updateProfile`, formData);
+      const response = apiService.put(`business`, formData);
       console.log(response)
     } catch (error) {
       console.log(error)
@@ -82,7 +82,7 @@ const BusinessProfile = () => {
 
 
     // try {
-    //   const response = await fetch('http://your-api-endpoint.com/save_restaurant.php', {
+    //   const response = await fetch('http://your-api-endpoint.com/save_business.php', {
     //     method: 'POST',
     //     body: formData
     //   });
@@ -120,7 +120,7 @@ const BusinessProfile = () => {
     </button>
   );
   return (
-    <div className="restaurant-profile max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+    <div className="business-profile max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Business Profile</h1>
         <Button
@@ -170,9 +170,9 @@ const BusinessProfile = () => {
             <Form.Item
               name="name"
               label="Business Name"
-              rules={[{ required: true, message: 'Please enter restaurant name' }]}
+              rules={[{ required: true, message: 'Please enter business name' }]}
             >
-              <Input placeholder="Enter restaurant name" />
+              <Input placeholder="Enter business name" />
             </Form.Item>
 
             <Form.Item
@@ -215,7 +215,7 @@ const BusinessProfile = () => {
           <Form.Item name="description" label="Business Description">
             <TextArea
               rows={4}
-              placeholder="Tell us about your restaurant"
+              placeholder="Tell us about your business"
             />
           </Form.Item>
 

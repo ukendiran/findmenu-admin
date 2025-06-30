@@ -91,7 +91,7 @@ export default function BusinessDetails({ businessId }) {
       if (imageFile?.file) formData.append('imageFile', imageFile.file);
       if (bannerImageFile?.file) formData.append('bannerImageFile', bannerImageFile.file);
 
-      await apiService.post("business/updateProfile", formData).then((response) => {
+      await apiService.put(`business/${businessData.id}`, formData).then((response) => {
         if (response.data.success) {
           setSuccessMessage("Business details updated successfully!");
         } else {

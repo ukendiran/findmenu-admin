@@ -43,20 +43,21 @@ const Items = () => {
       title: "Item Name",
       dataIndex: "name",
       key: "name",
+      width: "200px",
       onFilter: (value, record) => record.name.includes(value),
       sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
       title: "Category",
-      dataIndex: "category_name",
-      key: "category_name",
-      sorter: (a, b) => a.category_name.localeCompare(b.category_name),
+      dataIndex: ["category", "name"],
+      key: "category.name",
+      sorter: (a, b) => (a.category?.name || "").localeCompare(b.category?.name || ""),
     },
     {
       title: "Sub Category",
-      dataIndex: "sub_category_name",
-      key: "sub_category_name",
-      sorter: (a, b) => a.sub_category_name.localeCompare(b.sub_category_name),
+      dataIndex: ["sub_category", "name"],
+      key: "sub_category.name",
+      sorter: (a, b) => (a.sub_category?.name || "").localeCompare(b.sub_category?.name || ""),
     },
     {
       title: "Price",
@@ -160,7 +161,7 @@ const Items = () => {
   const fetchItems = async (businessId) => {
     try {
       setLoading(true)
-      const response = await apiService.get(`/items`, {
+      const response = await apiService.get(`/items-with-category`, {
         businessId,
       });
       if (response.data?.data) {

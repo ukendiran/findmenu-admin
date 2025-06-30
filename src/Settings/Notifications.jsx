@@ -1,12 +1,14 @@
 import { App, Button, Col, Form, Input, message, notification, Row, Space, Switch } from "antd";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector,useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 import apiService from "../services/apiService";
+import { updateConfig } from "../store/slices/authSlice";
 
 export default function Notifications() {
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
-  const [businessConfig, setRestaurantConfig] = useState({});
+  const [businessConfig, setBusinessConfig] = useState({});
   const [formData, setFormData] = useState({});
   // const user = useSelector((state) => state.auth.user);
   const config = useSelector((state) => state.auth.config);
@@ -39,7 +41,7 @@ export default function Notifications() {
   const getData = async () => {
     try {
       const response = await apiService.get(`/config/${config.businessId}`);
-      setRestaurantConfig(response.data.data);
+      setBusinessConfig(response.data.data);
       setLoading(false);
     } catch (error) {
       message.error("Error fetching business data");
@@ -69,12 +71,14 @@ export default function Notifications() {
     }
 
     try {
-      await apiService.put(`/config/${businessConfig.id}`, formData);
+      const config = await apiService.put(`/config/${businessConfig.id}`, formData);
+      dispatch(updateConfig(config.data.data));
       notificationApi.success({
         message: "Preferences Saved",
         description: "All preferences were successfully updated.",
         placement: "bottomRight",
       });
+
     } catch (error) {
       console.error("Error saving preferences:", error);
       notificationApi.error({

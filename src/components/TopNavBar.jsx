@@ -31,7 +31,7 @@ const { Text } = Typography;
 
 export default function TopNavBar({
   userData,
-  BusinessData,
+  configData,
   handleCollapsed,
   handleGoogleReview,
   collapsed,
@@ -94,7 +94,13 @@ export default function TopNavBar({
       if (key === "logout") {
         dispatch(logout(userData));
         navigate("/login");
-        notification.success({ message: "Logout Success", description: "Logged out successfully.", placement: "topRight" });
+        notification.success(
+          {
+            message: "Logout Success",
+            description: "Logged out successfully.",
+            placement: "topRight"
+          }
+        );
       } else {
         navigate(`/${key}`);
       }
@@ -126,7 +132,7 @@ export default function TopNavBar({
       {/* Top Right Menu */}
       <Space style={{ marginRight: 24 }}>
         Google Review
-        <Switch checkedChildren="On" unCheckedChildren="Off" checked={BusinessData.googleReviewStatus === 1} onChange={handleGoogleReview} />
+        <Switch checkedChildren="On" unCheckedChildren="Off" checked={configData?.googleReviewStatus === 1} onChange={handleGoogleReview} />
         <Dropdown disabled={true} trigger={["click"]} dropdownRender={() => notificationContent}>
           <Badge count={unreadCount} size="small">
             <Button type="text" icon={<BellOutlined style={{ fontSize: "18px" }} />} />
@@ -145,7 +151,8 @@ export default function TopNavBar({
 
 TopNavBar.propTypes = {
   userData: PropTypes.any,
-  BusinessData: PropTypes.any,
+  businessData: PropTypes.any,
+  configData: PropTypes.any,
   collapsed: PropTypes.bool,
   handleCollapsed: PropTypes.func,
   handleGoogleReview: PropTypes.func,

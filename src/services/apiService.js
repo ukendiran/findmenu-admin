@@ -16,11 +16,14 @@ const appUrl = import.meta.env.VITE_APP_URL;
 API.interceptors.request.use(
   (config) => {
     // Add token or other headers if needed
+    if(localStorage.getItem("token")) {
     const token =EncryptionService.decrypt(localStorage.getItem("token"));
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
+  }
+  return config;
   },
   (error) => {
     return Promise.reject(error);

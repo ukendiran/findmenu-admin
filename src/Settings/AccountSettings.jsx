@@ -7,7 +7,7 @@ import { PropTypes } from "prop-types";
 import { UploadOutlined } from "@ant-design/icons";
 
 
-export default function AccountSettings({ restaurantId, userId }) {
+export default function AccountSettings({ businessId, userId }) {
 
   const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,7 +16,7 @@ export default function AccountSettings({ restaurantId, userId }) {
   const [notificationApi, contextHolder] = notification.useNotification();
   useEffect(() => {
     getUserData();
-  }, [restaurantId]);
+  }, [businessId]);
 
 
 
@@ -67,12 +67,12 @@ export default function AccountSettings({ restaurantId, userId }) {
       });
       formData.append('oldImage', (userData.image).replace(`${apiService.appUrl}/`, ""));
       formData.append('id', userData.id);
-      formData.append('restaurantCode', userData.restaurantCode);
+      // formData.append('businessCode', userData.businessCode);
 
       if (imageFile?.file) formData.append('profileImage', imageFile.file);
 
       apiService
-        .post(`/users/updateprofile`, formData)
+        .put(`/users/${userData.id}`, formData)
         .then((response) => {
           if (response.data.success) {
             setLoading(false);
@@ -169,6 +169,6 @@ export default function AccountSettings({ restaurantId, userId }) {
 }
 
 AccountSettings.propTypes = {
-  restaurantId: PropTypes.any,
+  businessId: PropTypes.any,
   userId: PropTypes.any,
 };

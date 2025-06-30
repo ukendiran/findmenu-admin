@@ -6,10 +6,9 @@ import DraggableMenu from "../components/DraggableMenu";
 
 
 const MenuManagement = () => {
-  const token = useSelector((state) => state.auth.token);
-  const user = token.data;
+  const user = useSelector((state) => state.auth.user);
   useEffect(() => {
-    console.log(user.restaurantId);
+    console.log(user.businessId);
   }, [user]);
 
   // Define the tabs as an array of objects
@@ -19,8 +18,8 @@ const MenuManagement = () => {
       label: "Main Category",
       children: (
         <DraggableMenu
-          restaurantId={user.restaurantId}
-          controller="maincategory"
+          businessId={user.businessId}
+          controller="main-categories"
         />
       ),
     },
@@ -30,8 +29,8 @@ const MenuManagement = () => {
       label: "Sub Category",
       children: (
         <DraggableMenu
-          restaurantId={user.restaurantId}
-          controller="subcategory"
+          businessId={user.businessId}
+          controller="sub-categories"
         />
       ),
     },
@@ -39,7 +38,7 @@ const MenuManagement = () => {
       key: "3",
       label: "Items",
       children: (
-        <DraggableMenu restaurantId={user.restaurantId} controller="items" />
+        <DraggableMenu businessId={user.businessId} controller="items" />
       ),
     },
   ];
@@ -54,7 +53,7 @@ const MenuManagement = () => {
 };
 
 MenuManagement.propTypes = {
-  restaurantId: PropTypes.any,
+  businessId: PropTypes.any,
 
 };
 

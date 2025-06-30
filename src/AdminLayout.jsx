@@ -11,7 +11,7 @@ import { useSelector, useDispatch } from "react-redux";
 import TopNavBar from "./components/TopNavBar";
 import { imageUrl } from "./utils/common";
 import apiService from "./services/apiService";
-import { logout } from "./store/slices/authSlice";
+import { logout, updateConfig } from "./store/slices/authSlice";
 import CustomBreadcrumb from "./components/CustomBreadcrumb";
 
 const { Sider, Content } = Layout;
@@ -22,11 +22,12 @@ const AdminLayout = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
   const business = useSelector((state) => state.auth.business);
+  const config = useSelector((state) => state.auth.config);
 
   const [collapsed, setCollapsed] = useState(
     JSON.parse(localStorage.getItem("sidebarCollapsed")) || false
   );
-  const [BusinessData, setBusinessData] = useState([]);
+  const [businessData, setBusinessData] = useState([]);
   const [selectedKeys, setSelectedKeys] = useState([location.pathname]);
 
   const {
@@ -55,14 +56,17 @@ const AdminLayout = () => {
   const handleGoogleReview = async (checked) => {
     try {
       const newStatus = checked ? 1 : 2;
-      console.log(`/Businessconfig/${user.businessId}`)
-      await apiService.put(`/Businessconfig/${user.businessId}`, { googleReviewStatus: newStatus });
+      console.log(`/config/${user.businessId}`)
+      const config = await apiService.put(`/config/${user.businessId}`, { googleReviewStatus: newStatus });
       if (checked) {
         notificationApi.success({ message: "Google Review", description: `Google Review ${checked ? "enabled" : "disabled"}.`, placement: "bottomRight" });
       } else {
         notificationApi.warning({ message: "Google Review", description: `Google Review ${checked ? "enabled" : "disabled"}.`, placement: "bottomRight" });
       }
-      setBusinessData((prev) => ({ ...prev, googleReviewStatus: newStatus }));
+      // setBusinessData((prev) => ({ ...prev, googleReviewStatus: newStatus }));
+      setBusinessData(config.data.data);
+      dispatch(updateConfig(config.data.data));
+
     } catch (error) {
       console.log(error)
       notificationApi.error({ message: "Update Failed", description: "Failed to update Google Review.", placement: "bottomRight" });
@@ -147,7 +151,8 @@ const AdminLayout = () => {
           </Sider>
           <Layout style={{ marginLeft: collapsed ? 80 : 200 }}>
             <TopNavBar
-              BusinessData={BusinessData}
+              businessData={businessData}
+              configData={config}
               userData={user}
               collapsed={collapsed}
               handleGoogleReview={handleGoogleReview}

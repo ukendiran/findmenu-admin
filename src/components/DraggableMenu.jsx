@@ -49,7 +49,7 @@ const DraggableItem = ({ item, index, moveItem }) => {
   );
 };
 
-const DraggableMenu = ({ restaurantId, controller }) => {
+const DraggableMenu = ({ businessId, controller }) => {
   const [loading, setLoading] = useState(true);
   const [mainCategory, setMainCategory] = useState([]);
   const [notificationApi, contextHolder] = notification.useNotification();
@@ -76,10 +76,9 @@ const DraggableMenu = ({ restaurantId, controller }) => {
     console.log(filteredData);
 
     try {
-      const response = await apiService.post(`/${controller}/updatemenuorder`, {
-        updateData: filteredData,
+      const response = await apiService.post(`/${controller}/menu-order`, {
+        updateData: filteredData
       });
-      console.log(response.data.data);
       if (response.data.success) {
         notificationApi.success({
           message: "Menu ordering",
@@ -101,12 +100,8 @@ const DraggableMenu = ({ restaurantId, controller }) => {
 
   const getMainCategory = async () => {
     try {
-      let action = "getbyrestaurant";
-      if (controller == "items") {
-        action = "getitems";
-      }
-      const response = await apiService.post(`/${controller}/${action}`, {
-        restaurantId: restaurantId,
+      const response = await apiService.get(`/${controller}`, {
+        businessId: businessId,
       });
 
       if (response.data) {
@@ -147,7 +142,7 @@ const DraggableMenu = ({ restaurantId, controller }) => {
   );
 };
 DraggableMenu.propTypes = {
-  restaurantId: PropTypes.any,
+  businessId: PropTypes.any,
   controller: PropTypes.any,
 };
 

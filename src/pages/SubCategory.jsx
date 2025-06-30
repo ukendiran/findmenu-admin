@@ -64,7 +64,7 @@ const SubCategory = () => {
   const fetchSubCategories = async (businessId) => {
     try {
       setLoading(true)
-      const response = await apiService.get(`/sub-categories`, {
+      const response = await apiService.get(`/sub-categories-with-category`, {
         businessId,
       });
       if (response.data?.data) {
@@ -195,14 +195,15 @@ const SubCategory = () => {
       title: "Sub Category",
       dataIndex: "name",
       key: "name",
+      width: "200px",
       onFilter: (value, record) => record.name.includes(value),
       sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
       title: "Category",
-      dataIndex: "category_name",
-      key: "category_name",
-      sorter: (a, b) => a.category_name.localeCompare(b.category_name),
+      dataIndex: ["category", "name"],
+      key: "category.name",
+      sorter: (a, b) => (a.category?.name || "").localeCompare(b.category?.name || ""),
     },
     {
       title: "Image",

@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import EncryptionService from '../../services/encryptionService';
-import {decryptToken} from "../../services/validateToken"
+// import {decryptToken} from "../../services/validateToken"
 
 // Retrieve initial state from localStorage with decryption
 const getInitialState = () => {
@@ -10,19 +10,16 @@ const getInitialState = () => {
   const storedConfig = localStorage.getItem('config');  
   const storedBusiness = localStorage.getItem('business');  
   if(storedToken){
-    const token = EncryptionService.decrypt(storedToken)
-    const dcreptedToken = decryptToken(token)
-
     return {
-      isAuthenticated: storedAuth ? JSON.parse(storedAuth) : false,
-      user: storedUser ? JSON.parse(storedUser) : [],
-      config: storedConfig ? JSON.parse(storedConfig) : [],
-      business: storedBusiness ? JSON.parse(storedBusiness) : [],
-      token: dcreptedToken
+      isAuthenticated: storedAuth ? storedAuth : EncryptionService.encrypt(false),
+      user: storedUser ? JSON.parse(EncryptionService.decrypt(storedUser)) : [],
+      config: storedConfig ? JSON.parse(EncryptionService.decrypt(storedConfig)) : [],
+      business: storedBusiness ? JSON.parse(EncryptionService.decrypt(storedBusiness)) : [],
+      token: EncryptionService.decrypt(storedToken),
     };
   }else{
     return {
-      isAuthenticated:  false,
+      isAuthenticated:  EncryptionService.encrypt(false),
       token: null,
       storedUser: [],
       storedConfig: [],
@@ -39,11 +36,11 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       state.token = action.payload.token;
       // Save to localStorage with encryption
-      localStorage.setItem('isAuthenticated', JSON.stringify(true));
+      localStorage.setItem('isAuthenticated', EncryptionService.encrypt(JSON.stringify(true)));
       localStorage.setItem('token', EncryptionService.encrypt(action.payload.token));
-      localStorage.setItem('user', JSON.stringify(action.payload.user));
-      localStorage.setItem('config', JSON.stringify(action.payload.config));
-      localStorage.setItem('business', JSON.stringify(action.payload.business));
+      localStorage.setItem('user', EncryptionService.encrypt(JSON.stringify(action.payload.user)));
+      localStorage.setItem('config', EncryptionService.encrypt(JSON.stringify(action.payload.config)));
+      localStorage.setItem('business', EncryptionService.encrypt(JSON.stringify(action.payload.business)));
     },
     logout(state) {
       state.isAuthenticated = false;
@@ -59,8 +56,20 @@ const authSlice = createSlice({
       localStorage.removeItem('config');
       localStorage.removeItem('business');
     },
+    updateUser(state, action) {
+      state.user = action.payload;
+      localStorage.setItem('user', EncryptionService.encrypt(JSON.stringify(action.payload)));
+    },
+    updateConfig(state, action) {
+      state.config = action.payload;
+      localStorage.setItem('config', EncryptionService.encrypt(JSON.stringify(action.payload)));
+    },
+    updateBusiness(state, action) {
+      state.business = action.payload;
+      localStorage.setItem('business', EncryptionService.encrypt(JSON.stringify(action.payload)));
+    }
   },
 });
 
-export const { login, logout } = authSlice.actions;
+export const { login, logout,updateUser,updateConfig,updateBusiness } = authSlice.actions;
 export default authSlice.reducer;
