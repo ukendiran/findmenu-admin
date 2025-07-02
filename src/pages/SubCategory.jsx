@@ -29,6 +29,7 @@ const { Option } = Select;
 const SubCategory = () => {
   const [notificationApi, contextHolder] = notification.useNotification();
   const user = useSelector((state) => state.auth.user);
+  const business = useSelector((state) => state.auth.business);
   const [data, setData] = useState([]);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false); // Use Drawer visibility
   const [currentRecord, setCurrentRecord] = useState(null);
@@ -38,6 +39,8 @@ const SubCategory = () => {
   const [searchText, setSearchText] = useState("");
   const [filteredData, setFilteredData] = useState(data);
   const [imageFile, setImageFile] = useState(null);
+  const [status, setStatus] = useState(1);
+  const [isAvailable, setIsAvailable] = useState(1);
 
   useEffect(() => {
     if (user?.businessId) {
@@ -84,6 +87,8 @@ const SubCategory = () => {
   };
   const showDrawer = (record = null) => {
     setCurrentRecord(record);
+    setStatus(record?.status ?? 1); // 1 or 2
+    setIsAvailable(record?.isAvailable ?? 1);
     fetchCategories(user?.businessId)
     if (record) {
       form.setFieldsValue(record);
@@ -102,34 +107,58 @@ const SubCategory = () => {
     try {
       const formData = new FormData();
       formData.append('name', values.name);
-      // formData.append('description', values.description);
-      formData.append('status', values.status);
+       if (status === 1) {
+        formData.append("status", 1);
+      } else {
+        formData.append("status", 2);
+      }
+      if (isAvailable === 1) {
+        formData.append("isAvailable", 1);
+      } else {
+        formData.append("isAvailable", 2);
+      }
       formData.append('categoryId', values.categoryId);
       formData.append('businessId', user.businessId);
-      // formData.append('businessCode', user.businessCode);
-      if (imageFile?.file) {
+      formData.append('code', business.code);
+      if (imageFile?.originFileObj) {
         formData.append('image', imageFile.originFileObj);
       }
 
-      if (currentRecord) {
-        formData.append('_method', 'PUT');
-        await apiService.post(`/sub-categories/${currentRecord.id}`, formData);
-        notificationApi.success({ message: "Updated", description: "Category updated successfully!" });
+      // Check if it's update or create
+      if (currentRecord?.id) {
+        formData.append('_method', 'PUT'); // Laravel expects PUT via POST if using method spoofing
+        await apiService.post(`/sub-categories/${currentRecord.id}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        notificationApi.success({
+          message: "Updated",
+          description: "Sub-category updated successfully!",
+        });
       } else {
-        formData.append('_method', 'POST');
-        await apiService.post(`/sub-categories`, formData);
-        notificationApi.success({ message: "Created", description: "Category created successfully!" });
+        await apiService.post(`/sub-categories`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        notificationApi.success({
+          message: "Created",
+          description: "Sub-category created successfully!",
+        });
       }
 
       fetchSubCategories(user.businessId);
       handleDrawerCancel();
     } catch (error) {
+      console.error("Form submission error:", error);
       notificationApi.error({
         message: "Save Failed",
-        description: error.response?.data?.message || "Unable to save category",
+        description: error.response?.data?.message || "Unable to save sub-category",
       });
     }
   };
+
 
 
   const handleDelete = (record) => {
@@ -180,15 +209,14 @@ const SubCategory = () => {
     reader.onloadend = () => {
       setImageFile({
         file: file,
+        originFileObj: file, // ✅ needed for FormData
         url: reader.result,
-        name: file.name
+        name: file.name,
       });
     };
     reader.readAsDataURL(file);
     return false;
   };
-
-
 
   const columns = [
     {
@@ -212,7 +240,7 @@ const SubCategory = () => {
       width: "200",
       render: (image) => (
         <Image
-          src={image}
+          src={`${apiService.apiUrl}${image}`}
           alt="item"
           style={{
             width: 150,
@@ -228,7 +256,7 @@ const SubCategory = () => {
       dataIndex: "status",
       key: "status",
       render: (status, record) => (
-        <Switch checked={status === 1} onChange={(checked) => handleStatus(checked, record)} />
+        <Switch checkedChildren="On" unCheckedChildren="Off" checked={status === 1} onChange={(checked) => handleStatus(checked, record)} />
       ),
     },
     {
@@ -236,7 +264,7 @@ const SubCategory = () => {
       dataIndex: "isAvailable",
       key: "isAvailable",
       render: (isAvailable, record) => (
-        <Switch checked={isAvailable === 1} onChange={(checked) => handleAvailablity(checked, record)} />
+        <Switch checkedChildren="On" unCheckedChildren="Off" checked={isAvailable === 1} onChange={(checked) => handleAvailablity(checked, record)} />
       ),
     },
     {
@@ -321,6 +349,8 @@ const SubCategory = () => {
     form.resetFields();
   };
 
+
+
   return (
     <App>
       {contextHolder}
@@ -389,16 +419,22 @@ const SubCategory = () => {
           {/* <Form.Item id="description" name="description" label="Description">
             <Input.TextArea placeholder="Enter description" />
           </Form.Item> */}
-          <Form.Item
-            id="status"
-            name="status"
-            label="Status"
-            rules={[{ required: true, message: "Please select a status" }]}
-          >
-            <Select placeholder="Select status" id="status" name="status">
-              <Option value={1}>Enabled</Option>
-              <Option value={2}>Disabled</Option>
-            </Select>
+          <Form.Item label="Status">
+            <Switch
+              checked={status == 1}
+              onChange={checked => setStatus(checked ? 1 : 2)}
+              checkedChildren="On"
+              unCheckedChildren="Off"
+            />
+          </Form.Item>
+
+          <Form.Item label="Availablity">
+            <Switch
+              checked={isAvailable === 1}
+              onChange={checked => setIsAvailable(checked ? 1 : 2)}
+              checkedChildren="On"
+              unCheckedChildren="Off"
+            />
           </Form.Item>
           <Form.Item name="image" label="Category Image">
             <Space direction="horizontal" align="start">
@@ -419,6 +455,7 @@ const SubCategory = () => {
               </Upload>
             </Space>
           </Form.Item>
+
           <Form.Item>
             <Button
               type="primary"

@@ -95,8 +95,7 @@ const DraggableMenu = ({ businessId, controller }) => {
 
   useEffect(() => {
     getMainCategory();
-    console.log(mainCategory, loading);
-  }, []);
+  }, [loading]);
 
   const getMainCategory = async () => {
     try {

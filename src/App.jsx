@@ -16,8 +16,7 @@ import Feedback from "./pages/Feedback";
 import Import from "./pages/Import";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
-
-
+import PrivateRoute from "./PrivateRoute";
 
 const App = () => {
 
@@ -26,7 +25,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Login />} /> {/* Default route */}
         <Route path="/login" element={<Login />} /> {/* Default route */}
-        <Route path="/" element={<AdminLayout />}>
+        <Route path="/" element={<PrivateRoute><AdminLayout /></PrivateRoute>}>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="settings" element={<Settings />} />
           <Route path="profile" element={<UserProfile />} />

@@ -7,7 +7,6 @@ import {
   Drawer,
   Form,
   Input,
-  Select,
   notification,
   Image,
   Switch,
@@ -20,7 +19,6 @@ import { SearchOutlined, UploadOutlined } from "@ant-design/icons";
 import apiService from "../services/apiService";
 
 const { Title } = Typography;
-const { Option } = Select;
 
 
 const MainCategory = () => {
@@ -34,9 +32,10 @@ const MainCategory = () => {
   const [searchText, setSearchText] = useState("");
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState(1);
+  const [isAvailable, setIsAvailable] = useState(1);
 
   useEffect(() => {
-    console.log(user)
     if (user?.businessId) {
       fetchCategories(user.businessId);
     }
@@ -46,7 +45,6 @@ const MainCategory = () => {
     try {
       setLoading(true);
       const response = await apiService.get(`/main-categories`, { businessId });
-      console.log("response", response)
       if (response.data?.data) {
         const dataWithKeys = response.data.data.map((item, index) => ({
           ...item,
@@ -68,7 +66,10 @@ const MainCategory = () => {
   };
 
   const showDrawer = (record = null) => {
+    console.log("showDrawer", record);
     setCurrentRecord(record);
+    setStatus(record?.status ?? 1); // 1 or 2
+    setIsAvailable(record?.isAvailable ?? 1);
     if (record) {
       form.setFieldsValue(record);
       setImageFile({
@@ -118,17 +119,25 @@ const MainCategory = () => {
 
   const handleFormSubmit = async (values) => {
     try {
-      console.log("user", user)
       const formData = new FormData();
       formData.append('name', values.name);
       // formData.append('description', values.description);
-      formData.append('status', values.status);
+      if (status === 1) {
+        formData.append("status", 1);
+      } else {
+        formData.append("status", 2);
+      }
+      if (isAvailable === 1) {
+        formData.append("isAvailable", 1);
+      } else {
+        formData.append("isAvailable", 2);
+      }
       formData.append('businessId', user.businessId);
       if (imageFile?.file) {
         formData.append('image', imageFile.originFileObj);
       }
 
-      if (currentRecord) {
+      if (currentRecord?.id) {
         formData.append('_method', 'PUT');
         await apiService.post(`/main-categories/${currentRecord.id}`, formData);
         notificationApi.success({ message: "Updated", description: "Category updated successfully!" });
@@ -154,7 +163,7 @@ const MainCategory = () => {
       content: "Are you sure you want to delete this category?",
       onOk: async () => {
         try {
-          await apiService.delete(`/maincategory/${record.id}`);
+          await apiService.delete(`/main-categories/${record.id}`);
           notificationApi.success({ message: "Deleted", description: "Category deleted successfully!" });
           fetchCategories(user.businessId);
         } catch (error) {
@@ -222,30 +231,12 @@ const MainCategory = () => {
       onFilter: (value, record) => record.name.includes(value),
       sorter: (a, b) => a.name.localeCompare(b.name),
     },
-    // {
-    //   title: "Image",
-    //   dataIndex: "image",
-    //   key: "image",
-    //   width: "200",
-    //   render: (image) => (
-    //     <Image
-    //       src={image}
-    //       alt="item"
-    //       style={{
-    //         width: 150,
-    //         height: 100,
-    //         objectFit: "cover",
-    //         borderRadius: "4px",
-    //       }}
-    //     />
-    //   ),
-    // },
     {
       title: "Status",
       dataIndex: "status",
       key: "status",
       render: (status, record) => (
-        <Switch checked={status === 1} onChange={(checked) => handleStatus(checked, record)} />
+        <Switch checkedChildren="On" unCheckedChildren="Off" checked={status === 1} onChange={(checked) => handleStatus(checked, record)} />
       ),
     },
     {
@@ -253,7 +244,7 @@ const MainCategory = () => {
       dataIndex: "isAvailable",
       key: "isAvailable",
       render: (isAvailable, record) => (
-        <Switch checked={isAvailable === 1} onChange={(checked) => handleAvailablity(checked, record)} />
+        <Switch checkedChildren="On" unCheckedChildren="Off" checked={isAvailable === 1} onChange={(checked) => handleAvailablity(checked, record)} />
       ),
     },
     {
@@ -285,6 +276,9 @@ const MainCategory = () => {
     );
     setFilteredData(filtered);
   };
+
+
+
 
   return (
     <App>
@@ -331,19 +325,26 @@ const MainCategory = () => {
           >
             <Input placeholder="Enter category name" />
           </Form.Item>
-          {/* <Form.Item name="description" label="Description">
-            <Input.TextArea placeholder="Enter description" />
-          </Form.Item> */}
-          <Form.Item
-            name="status"
-            label="Status"
-            rules={[{ required: true, message: "Please select a status" }]}
-          >
-            <Select placeholder="Select status">
-              <Option value={1}>Enabled</Option>
-              <Option value={2}>Disabled</Option>
-            </Select>
+
+          <Form.Item label="Status">
+            <Switch
+              checked={status == 1}
+              onChange={checked => setStatus(checked ? 1 : 2)}
+              checkedChildren="On"
+              unCheckedChildren="Off"
+            />
           </Form.Item>
+
+          <Form.Item label="Availablity">
+            <Switch
+              checked={isAvailable === 1}
+              onChange={checked => setIsAvailable(checked ? 1 : 2)}
+              checkedChildren="On"
+              unCheckedChildren="Off"
+            />
+          </Form.Item>
+
+
           <Form.Item name="image" label="Category Image" style={{ display: 'none' }}>
             <Space direction="horizontal" align="start">
               {imageFile?.url && (

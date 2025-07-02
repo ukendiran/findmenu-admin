@@ -28,6 +28,7 @@ const Items = () => {
   const [form] = Form.useForm();
   const [notificationApi, contextHolder] = notification.useNotification();
   const user = useSelector((state) => state.auth.user);
+  const business = useSelector((state) => state.auth.business);
   const [data, setData] = useState([]);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [currentRecord, setCurrentRecord] = useState(null);
@@ -37,6 +38,8 @@ const Items = () => {
   const [filteredData, setFilteredData] = useState(data);
   const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState(1);
+  const [isAvailable, setIsAvailable] = useState(1);
 
   const columns = [
     {
@@ -63,6 +66,7 @@ const Items = () => {
       title: "Price",
       dataIndex: "price",
       key: "price",
+      width: "200px",
       sorter: (a, b) => a.price.localeCompare(b.price),
     },
     {
@@ -72,7 +76,7 @@ const Items = () => {
       width: "200",
       render: (image) => (
         <Image
-          src={image}
+          src={`${apiService.apiUrl}${image}`}
           alt="item"
           style={{
             width: 150,
@@ -88,7 +92,7 @@ const Items = () => {
       dataIndex: "status",
       key: "status",
       render: (status, record) => (
-        <Switch checked={status === 1} onChange={(checked) => handleStatus(checked, record)} />
+        <Switch checkedChildren="On" unCheckedChildren="Off" checked={status === 1} onChange={(checked) => handleStatus(checked, record)} />
       ),
     },
     {
@@ -96,7 +100,7 @@ const Items = () => {
       dataIndex: "isAvailable",
       key: "isAvailable",
       render: (isAvailable, record) => (
-        <Switch checked={isAvailable === 1} onChange={(checked) => handleAvailablity(checked, record)} />
+        <Switch checkedChildren="On" unCheckedChildren="Off" checked={isAvailable === 1} onChange={(checked) => handleAvailablity(checked, record)} />
       ),
     },
     {
@@ -121,11 +125,10 @@ const Items = () => {
   ];
 
   useEffect(() => {
-    console.log(searchText);
     if (user?.businessId) {
       fetchItems(user.businessId);
     }
-  }, [user?.businessId]);
+  }, [user, business]);
 
 
 
@@ -164,6 +167,7 @@ const Items = () => {
       const response = await apiService.get(`/items-with-category`, {
         businessId,
       });
+      console.log("response", response.data);
       if (response.data?.data) {
         const dataWithKeys = response.data.data.map((item, index) => ({
           ...item,
@@ -198,8 +202,9 @@ const Items = () => {
     reader.onloadend = () => {
       setImageFile({
         file: file,
+        originFileObj: file, // ✅ needed for FormData
         url: reader.result,
-        name: file.name
+        name: file.name,
       });
     };
     reader.readAsDataURL(file);
@@ -209,7 +214,8 @@ const Items = () => {
   const showDrawer = (record = null) => {
     console.log("showDrawer", record);
     fetchCategories(user.businessId);
-
+    setStatus(record?.status ?? 1); // 1 or 2
+    setIsAvailable(record?.isAvailable ?? 1);
     setCurrentRecord(record);
     if (record) {
       fetchSubCategories(user.businessId, record.categoryId);
@@ -236,25 +242,50 @@ const Items = () => {
       const formData = new FormData();
       formData.append('name', values.name);
       formData.append('description', values.description);
-      formData.append('status', values.status);
+      if (status === 1) {
+        formData.append("status", 1);
+      } else {
+        formData.append("status", 2);
+      }
+      if (isAvailable === 1) {
+        formData.append("isAvailable", 1);
+      } else {
+        formData.append("isAvailable", 2);
+      }
       formData.append('price', values.price);
       formData.append('categoryId', values.categoryId);
       formData.append('subCategoryId', values.subCategoryId);
       formData.append('businessId', user.businessId);
-
-      if (imageFile?.file) {
-        formData.append('image', imageFile.originFileObj);
+      formData.append('code', business.code);
+      if (imageFile?.originFileObj) {
+        formData.append("image", imageFile.originFileObj);
       }
 
-      if (currentRecord) {
-        formData.append('_method', 'PUT');
-        await apiService.post(`/items/${currentRecord.id}`, formData);
-        notificationApi.success({ message: "Updated", description: "Item updated successfully!" });
+
+      // Check if it's update or create
+      if (currentRecord?.id) {
+        formData.append('_method', 'PUT'); // Laravel expects PUT via POST if using method spoofing
+        await apiService.post(`/items/${currentRecord.id}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        notificationApi.success({
+          message: "Updated",
+          description: "Items updated successfully!",
+        });
       } else {
-        formData.append('_method', 'POST');
-        await apiService.post(`/items`, formData);
-        notificationApi.success({ message: "Created", description: "Item created successfully!" });
+        await apiService.post(`/items`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        notificationApi.success({
+          message: "Created",
+          description: "Items created successfully!",
+        });
       }
+
       fetchItems(user.businessId);
       handleDrawerCancel();
     } catch (error) {
@@ -443,27 +474,27 @@ const Items = () => {
             <Input.TextArea placeholder="Enter description" />
           </Form.Item>
 
-          <Form.Item
-            id="status"
-            name="status"
-            label="Status"
-            rules={[{ required: true, message: "Please select a status" }]}
-          >
-            <Select placeholder="Select status">
-              <Option value={1}>Enabled</Option>
-              <Option value={2}>Disabled</Option>
-            </Select>
+          <Form.Item label="Status">
+            <Switch
+              checked={status == 1}
+              onChange={checked => setStatus(checked ? 1 : 2)}
+              checkedChildren="On"
+              unCheckedChildren="Off"
+            />
+          </Form.Item>
+
+          <Form.Item label="Availablity">
+            <Switch
+              checked={isAvailable === 1}
+              onChange={checked => setIsAvailable(checked ? 1 : 2)}
+              checkedChildren="On"
+              unCheckedChildren="Off"
+            />
           </Form.Item>
 
           <Form.Item name="image" label="Item Image">
-            <Space direction="horizontal" align="start">
-              {imageFile?.url && (
-                <Image
-                  width={150}
-                  src={imageFile.url}
-                  alt="Category Image"
-                />
-              )}
+            <Space direction="horizontal">
+              {imageFile?.url && <Image src={imageFile.url} width={150} />}
               <Upload
                 accept="image/*"
                 beforeUpload={() => false}

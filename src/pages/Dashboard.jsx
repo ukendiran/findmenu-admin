@@ -45,9 +45,10 @@ const Dashboard = () => {
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
             <Card title="Feedback" bordered={false}>
-              98% Positive
+              {dashboardData?.feedback_count ? dashboardData?.feedback_count : 0} Active
             </Card>
           </Col>
+         
         </Row>
       </Content>
     </div>

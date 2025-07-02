@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { Button, Col, Form, Row, Spin, Input, Upload, Image, notification, App, Select } from "antd";
+import { Button, Col, Form, Row, Spin, Input, Upload, Image, notification, App, Select, Space } from "antd";
 const { TextArea } = Input;
 import { UploadOutlined } from '@ant-design/icons';
 import apiService from "../services/apiService";
@@ -53,27 +53,58 @@ export default function BusinessDetails({ businessId }) {
     }
   };
 
-  const handleImageUpload = (info, type) => {
+  const handleImageUpload = (info) => {
     const file = info.file;
     const isImage = file.type.startsWith('image/');
     const isLt2M = file.size / 1024 / 1024 < 2;
 
     if (!isImage || !isLt2M) {
-      setError(!isImage ? "Only image files are allowed" : "Image must be smaller than 2MB!");
+      notificationApi.error({
+        message: "Upload Error",
+        description: isImage ? "Image must be smaller than 2MB!" : "Only image files are allowed",
+      });
       return false;
     }
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      if (type === 'logo') {
-        setImageFile({ file, url: reader.result, name: file.name });
-      } else {
-        setBannerImageFile({ file, url: reader.result, name: file.name });
-      }
+      setImageFile({
+        file: file,
+        originFileObj: file, // ✅ needed for FormData
+        url: reader.result,
+        name: file.name,
+      });
     };
     reader.readAsDataURL(file);
     return false;
   };
+
+  const handleBannerImageUpload = (info) => {
+    const file = info.file;
+    const isImage = file.type.startsWith('image/');
+    const isLt2M = file.size / 1024 / 1024 < 2;
+
+    if (!isImage || !isLt2M) {
+      notificationApi.error({
+        message: "Upload Error",
+        description: isImage ? "Image must be smaller than 2MB!" : "Only image files are allowed",
+      });
+      return false;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setBannerImageFile({
+        file: file,
+        originFileObj: file, // ✅ needed for FormData
+        url: reader.result,
+        name: file.name,
+      });
+    };
+    reader.readAsDataURL(file);
+    return false;
+  };
+
 
   const handleSubmit = async (values) => {
     setLoading(true);
@@ -82,16 +113,17 @@ export default function BusinessDetails({ businessId }) {
       Object.keys(values).forEach(key => {
         formData.append(key, values[key]);
       });
-
-      formData.append('oldImage', (businessData.image).replace(`${apiService.appUrl}/`, ""));
-      formData.append('oldBannerImage', (businessData.bannerImage).replace(`${apiService.appUrl}/`, ""));
       formData.append('id', businessData.id);
-      formData.append('businessCode', businessData.businessCode);
+      formData.append('_method', 'PUT');
+      if (imageFile?.originFileObj) {
+        formData.append('image', imageFile.originFileObj);
+      }
+      if (bannerImageFile?.originFileObj) {
+        formData.append('bannerImage', bannerImageFile.originFileObj);
+      }
 
-      if (imageFile?.file) formData.append('imageFile', imageFile.file);
-      if (bannerImageFile?.file) formData.append('bannerImageFile', bannerImageFile.file);
 
-      await apiService.put(`business/${businessData.id}`, formData).then((response) => {
+      await apiService.post(`business/${businessData.id}`, formData).then((response) => {
         if (response.data.success) {
           setSuccessMessage("Business details updated successfully!");
         } else {
@@ -171,37 +203,49 @@ export default function BusinessDetails({ businessId }) {
           {/* Logo Section */}
           <Col xs={24} sm={24} md={4} lg={4} style={{ display: "flex", alignItems: "center", flexDirection: "column" }}>
 
-            <Form.Item label="Business Logo">
-              {imageFile?.url && (
-                <Image
-                  width="100%"
-                  style={{ maxWidth: "200px", maxHeight: "200px", borderRadius: "10px" }}
-                  src={imageFile.url}
-                  alt="Business Logo"
-                />
-              )}
+            <Form.Item name="image" label="Logo Image">
+              <Space direction="vertical" align="start">
+                {imageFile?.url && (
+                  <Image
+                    width={150}
+                    src={imageFile.name ? `${apiService.apiUrl}${imageFile.name}` : imageFile?.url}
+                    alt="Logo Image"
+                  />
+                )}
+                <Upload
+                  accept="image/*"
+                  beforeUpload={() => false}
+                  onChange={handleImageUpload}
+                  showUploadList={false}
+                >
+                  <Button icon={<UploadOutlined />}>Upload Image</Button>
+                </Upload>
+              </Space>
             </Form.Item>
-            <Upload accept="image/*" beforeUpload={() => false} onChange={(info) => handleImageUpload(info, 'logo')} showUploadList={false}>
-              <Button icon={<UploadOutlined />}>Upload Logo</Button>
-            </Upload>
             <small style={{ marginTop: 10 }}>Recommended JPEG/PNG, size 200x200</small>
           </Col>
 
           {/* Right Column for Images */}
           <Col xs={24} sm={24} md={12} lg={12} style={{ display: "flex", alignItems: "center", flexDirection: "column" }}>
-            <Form.Item label="Banner Image">
-              {bannerImageFile?.url && (
-                <Image
-                  width="100%"
-                  style={{ maxWidth: "500px", maxHeight: "300px", borderRadius: "10px" }}
-                  src={bannerImageFile.url}
-                  alt="Banner"
-                />
-              )}
+            <Form.Item name="bannerImageFile" label="Banner Image">
+              <Space direction="vertical" align="start">
+                {bannerImageFile?.url && (
+                  <Image
+                    width={250}
+                    src={bannerImageFile.name ? `${apiService.apiUrl}${bannerImageFile.name}` : bannerImageFile?.url}
+                    alt="Banner Image"
+                  />
+                )}
+                <Upload
+                  accept="image/*"
+                  beforeUpload={() => false}
+                  onChange={handleBannerImageUpload}
+                  showUploadList={false}
+                >
+                  <Button icon={<UploadOutlined />}>Upload Image</Button>
+                </Upload>
+              </Space>
             </Form.Item>
-            <Upload accept="image/*" beforeUpload={() => false} onChange={(info) => handleImageUpload(info, 'banner')} showUploadList={false}>
-              <Button icon={<UploadOutlined />}>Upload Banner</Button>
-            </Upload>
             <small style={{ marginTop: 10 }}>Recommended JPEG/PNG, size 500x300</small>
           </Col>
         </Row>

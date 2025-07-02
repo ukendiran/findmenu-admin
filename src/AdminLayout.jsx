@@ -5,11 +5,10 @@ import {
   DashboardOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
-import { Layout, Menu, theme, notification, App } from "antd";
+import { Layout, Menu, theme, notification, App, Spin } from "antd";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import TopNavBar from "./components/TopNavBar";
-import { imageUrl } from "./utils/common";
 import apiService from "./services/apiService";
 import { logout, updateConfig } from "./store/slices/authSlice";
 import CustomBreadcrumb from "./components/CustomBreadcrumb";
@@ -42,6 +41,12 @@ const AdminLayout = () => {
   }, []);
 
 
+  if (user === undefined) {
+    return <Spin fullscreen />;
+  }
+
+
+
 
   const handleLogout = () => {
     dispatch(logout());
@@ -56,7 +61,6 @@ const AdminLayout = () => {
   const handleGoogleReview = async (checked) => {
     try {
       const newStatus = checked ? 1 : 2;
-      console.log(`/config/${user.businessId}`)
       const config = await apiService.put(`/config/${user.businessId}`, { googleReviewStatus: newStatus });
       if (checked) {
         notificationApi.success({ message: "Google Review", description: `Google Review ${checked ? "enabled" : "disabled"}.`, placement: "bottomRight" });
@@ -128,7 +132,7 @@ const AdminLayout = () => {
           >
             <div style={{ height: 64, display: "flex", alignItems: "center", justifyContent: "center", background: darkHeaderBg }}>
               <img
-                src={imageUrl("images/logo.png")}
+                src={"https://findmenu.in/images/logo.png"}
                 alt="Admin Panel"
                 style={{ height: 40, cursor: "pointer" }}
                 onClick={() => navigate("/dashboard")}

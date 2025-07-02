@@ -58,7 +58,7 @@ const Feedback = () => {
   const handleRead = (item, status, action) => {
     try {
       // const newStatus = action === 'new' ? 2 : 3
-      apiService.put(`/feedback/${item.key}`, { status: status }).then(() => {
+      apiService.delete(`/feedbacks/${item.key}`, { status: status }).then(() => {
         if (action === 'new') {
           notificationApi.success({
             message: "Success",
