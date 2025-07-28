@@ -5,7 +5,7 @@ import store from "../store";
 
 // Create Axios instance
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL + "/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: parseInt(import.meta.env.VITE_API_TIMEOUT, 10) || 5000,
   headers: {
     'X-Requested-With': 'XMLHttpRequest',
