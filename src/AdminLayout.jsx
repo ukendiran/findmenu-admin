@@ -132,7 +132,7 @@ const AdminLayout = () => {
           >
             <div style={{ height: 64, display: "flex", alignItems: "center", justifyContent: "center", background: darkHeaderBg }}>
               <img
-                src={"https://findmenu.in/images/logo.png"}
+                src={`${apiService.apiUrl}/images/logo.png`}
                 alt="Admin Panel"
                 style={{ height: 40, cursor: "pointer" }}
                 onClick={() => navigate("/dashboard")}

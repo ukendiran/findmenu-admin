@@ -1,9 +1,10 @@
 import { App, Button, Col, Form, Input, message, notification, Row, Space, Switch } from "antd";
 import { useEffect, useState } from "react";
-import { useSelector,useDispatch } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 import apiService from "../services/apiService";
 import { updateConfig } from "../store/slices/authSlice";
+import { SaveOutlined } from "@ant-design/icons";
 
 export default function Notifications() {
   const dispatch = useDispatch();
@@ -14,6 +15,9 @@ export default function Notifications() {
   const config = useSelector((state) => state.auth.config);
   const [notificationApi, contextHolder] = notification.useNotification();
 
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+
   useEffect(() => {
     getData();
   }, []);
@@ -23,17 +27,18 @@ export default function Notifications() {
       setFormData({
         reviewStatus: businessConfig.reviewStatus || 2,
         googleReviewStatus: businessConfig.googleReviewStatus || 2,
-        googleReviewLink: businessConfig.googleReviewLink || "",
+        googleReview: businessConfig.googleReview || "",
         wifiPasswordStatus: businessConfig.wifiPasswordStatus || 2,
         wifiPassword: businessConfig.wifiPassword || "",
         instagramStatus: businessConfig.instagramStatus || 2,
-        instagramLink: businessConfig.instagramLink || "",
+        instagram: businessConfig.instagram || "",
         facebookStatus: businessConfig.facebookStatus || 2,
-        facebookLink: businessConfig.facebookLink || "",
+        facebook: businessConfig.facebook || "",
         youtubeStatus: businessConfig.youtubeStatus || 2,
-        youtubeLink: businessConfig.youtubeLink || "",
+        youtube: businessConfig.youtube || "",
         whatsappStatus: businessConfig.whatsappStatus || 2,
-        whatsappLink: businessConfig.whatsappLink || "",
+        whatsapp: businessConfig.whatsapp || "",
+        showFeedbackFormStatus: businessConfig.showFeedbackFormStatus || 1,
       });
     }
   }, [businessConfig]);
@@ -51,6 +56,7 @@ export default function Notifications() {
   };
 
   const handleChange = (checked, field) => {
+    setHasChanges(true);
     setFormData((prev) => ({
       ...prev,
       [field]: checked ? 1 : 2,
@@ -58,6 +64,7 @@ export default function Notifications() {
   };
 
   const handleInputChange = (value, field) => {
+    setHasChanges(true);
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -65,6 +72,7 @@ export default function Notifications() {
   };
 
   const handleSavePreferences = async () => {
+    setIsSaving(true);
     if (!businessConfig.id) {
       message.error("Error: Configuration ID missing");
       return;
@@ -76,16 +84,15 @@ export default function Notifications() {
       notificationApi.success({
         message: "Preferences Saved",
         description: "All preferences were successfully updated.",
-        placement: "bottomRight",
       });
-
+      setIsSaving(false);
     } catch (error) {
       console.error("Error saving preferences:", error);
       notificationApi.error({
         message: "Save Failed",
         description: "Failed to save preferences. Please try again.",
-        placement: "bottomRight",
       });
+      setIsSaving(false);
     }
   };
 
@@ -119,8 +126,8 @@ export default function Notifications() {
                   {/* {formData.googleReviewStatus === 1 && (
                   <Input
                     placeholder="Enter Google Review Link"
-                    value={formData.googleReviewLink}
-                    onChange={(e) => handleInputChange(e.target.value, "googleReviewLink")}
+                    value={formData.googleReview}
+                    onChange={(e) => handleInputChange(e.target.value, "googleReview")}
                   />
                 )} */}
                 </Space>
@@ -137,8 +144,8 @@ export default function Notifications() {
                   {/* {formData.instagramStatus === 1 && (
                   <Input
                     placeholder="Enter Instagram"
-                    value={formData.instagramLink}
-                    onChange={(e) => handleInputChange(e.target.value, "instagramLink")}
+                    value={formData.instagram}
+                    onChange={(e) => handleInputChange(e.target.value, "instagram")}
                   />
                 )} */}
                 </Space>
@@ -159,8 +166,8 @@ export default function Notifications() {
                   {/* {formData.facebookStatus === 1 && (
                   <Input
                     placeholder="Enter Facebook"
-                    value={formData.facebookLink}
-                    onChange={(e) => handleInputChange(e.target.value, "instagramLink")}
+                    value={formData.facebook}
+                    onChange={(e) => handleInputChange(e.target.value, "instagram")}
                   />
                 )} */}
                 </Space>
@@ -176,8 +183,8 @@ export default function Notifications() {
                   {/* {formData.youtubeStatus === 1 && (
                   <Input
                     placeholder="Enter Youtube"
-                    value={formData.youtubeLink}
-                    onChange={(e) => handleInputChange(e.target.value, "youtubeLink")}
+                    value={formData.youtube}
+                    onChange={(e) => handleInputChange(e.target.value, "youtube")}
                   />
                 )} */}
                 </Space>
@@ -193,8 +200,8 @@ export default function Notifications() {
                   {/* {formData.whatsappStatus === 1 && (
                   <Input
                     placeholder="Enter Whatsapp"
-                    value={formData.whatsappLink}
-                    onChange={(e) => handleInputChange(e.target.value, "whatsappLink")}
+                    value={formData.whatsapp}
+                    onChange={(e) => handleInputChange(e.target.value, "whatsapp")}
                   />
                 )} */}
                 </Space>
@@ -223,11 +230,48 @@ export default function Notifications() {
               </Form.Item>
             </Space>
           </Col>
+          <Col sm={24} lg={12}>
+            <Space>
+              <Form.Item label="Show Feedback Form">
+                <Space>
+                  <Switch
+                    checkedChildren="On"
+                    unCheckedChildren="Off"
+                    checked={formData.showFeedbackFormStatus === 1}
+                    onChange={(checked) => handleChange(checked, "showFeedbackFormStatus")}
+                  />
+                </Space>
+              </Form.Item>
+            </Space>
+          </Col>
+          <Col
+            xs={24}
+            sm={24}
+            md={12}
+            lg={12}
+            xl={12}
+            className="text-right"
+            style={{
+              marginTop: 16,
+              paddingRight: 8
+            }}
+          >
+            <Button
+              type="primary"
+              onClick={handleSavePreferences}
+              icon={<SaveOutlined />}
+              loading={isSaving}
+              disabled={isSaving || !hasChanges}
+              size="large"
+              style={{
+                minWidth: 150,
+                fontWeight: 500
+              }}
+            >
+              {isSaving ? 'Saving...' : 'Save Preferences'}
+            </Button>
 
-          <Button type="primary" onClick={handleSavePreferences}>
-            Save Preferences
-          </Button>
-
+          </Col>
 
         </Row>
       </Form>

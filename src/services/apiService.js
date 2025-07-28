@@ -7,6 +7,10 @@ import store from "../store";
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL + "/api",
   timeout: parseInt(import.meta.env.VITE_API_TIMEOUT, 10) || 5000,
+  headers: {
+    'X-Requested-With': 'XMLHttpRequest',
+    'Accept': 'application/json'
+  }
 });
 
 // Helper: get decrypted token

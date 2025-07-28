@@ -1,0 +1,28 @@
+name: Deploy React App to Hostinger
+
+on:
+  push:
+    branches:
+      - main  # Change this if you use a different branch for deployment
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build React App
+        run: npm run build
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /app/        # Change based on subdomain (e.g., /public_html/app/, /public_html/admin/)
+          local-dir: build/

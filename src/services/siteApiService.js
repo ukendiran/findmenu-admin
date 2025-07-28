@@ -5,6 +5,10 @@ import axios from "axios";
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL, // Use environment variable
   timeout: parseInt(import.meta.env.VITE_API_TIMEOUT, 10) || 5000, // Optional: timeout from env or default to 5000ms
+  headers: {
+    'X-Requested-With': 'XMLHttpRequest',
+    'Accept': 'application/json'
+  }
 });
 
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
