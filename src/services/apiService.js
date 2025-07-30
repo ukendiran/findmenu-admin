@@ -3,10 +3,17 @@ import EncryptionService from "./encryptionService";
 import { logout } from "../store/slices/authSlice";
 import store from "../store";
 
-// Create Axios instance
+const apiUrl = import.meta.env.VITE_API_URL;
+const siteUrl = import.meta.env.VITE_SITE_URL;
+const appUrl = import.meta.env.VITE_APP_URL;
+const adminUrl = import.meta.env.VITE_ADMIN_URL;
+const manageUrl = import.meta.env.VITE_MANAGE_URL;
+const timeout = import.meta.env.VITE_API_TIMEOUT;
+
+// Base configuration for Axios
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
-  timeout: parseInt(import.meta.env.VITE_API_TIMEOUT, 10) || 5000,
+ baseURL: apiUrl,
+  timeout: parseInt(timeout, 10) || 5000, // Optional: timeout from env or default to 5000ms
   headers: {
     'X-Requested-With': 'XMLHttpRequest',
     'Accept': 'application/json'
@@ -110,6 +117,9 @@ export default {
   post: (url, data) => API.post(url, data),
   put: (url, data) => API.put(url, data),
   delete: (url, data) => API.delete(url, { data }),
-  appUrl: import.meta.env.VITE_APP_URL,
-  apiUrl: import.meta.env.VITE_API_BASE_URL,
+  apiUrl:apiUrl,
+    siteUrl:siteUrl,
+    appUrl:appUrl,
+    adminUrl:adminUrl,
+    manageUrl:manageUrl,
 };
