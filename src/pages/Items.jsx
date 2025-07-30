@@ -40,6 +40,9 @@ const Items = () => {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState(1);
   const [isAvailable, setIsAvailable] = useState(1);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState(null);
+
 
   const columns = [
     {
@@ -67,7 +70,12 @@ const Items = () => {
       dataIndex: "price",
       key: "price",
       width: "200px",
-      sorter: (a, b) => a.price.localeCompare(b.price),
+      sorter: (a, b) => {
+        // Handle cases where either price is null or undefined
+        const priceA = a.price || "";
+        const priceB = b.price || "";
+        return priceA.localeCompare(priceB);
+      },
     },
     {
       title: "Image",
@@ -76,7 +84,7 @@ const Items = () => {
       width: "200",
       render: (image) => (
         <Image
-          src={`${apiService.apiUrl}${image}`}
+          src={`${apiService.apiUrl}/${image}`}
           alt="item"
           style={{
             width: 150,
@@ -187,16 +195,16 @@ const Items = () => {
 
   const handleImageUpload = (info) => {
     const file = info.file;
-    const isImage = file.type.startsWith('image/');
-    const isLt2M = file.size / 1024 / 1024 < 2;
+    // const isImage = file.type.startsWith('image/');
+    // const isLt2M = file.size / 1024 / 1024 < 2;
 
-    if (!isImage || !isLt2M) {
-      notificationApi.error({
-        message: "Upload Error",
-        description: isImage ? "Image must be smaller than 2MB!" : "Only image files are allowed",
-      });
-      return false;
-    }
+    // if (!isImage || !isLt2M) {
+    //   notificationApi.error({
+    //     message: "Upload Error",
+    //     description: isImage ? "Image must be smaller than 2MB!" : "Only image files are allowed",
+    //   });
+    //   return false;
+    // }
 
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -212,13 +220,13 @@ const Items = () => {
   };
 
   const showDrawer = (record = null) => {
-    console.log("showDrawer", record);
     fetchCategories(user.businessId);
     setStatus(record?.status ?? 1); // 1 or 2
     setIsAvailable(record?.isAvailable ?? 1);
     setCurrentRecord(record);
     if (record) {
       fetchSubCategories(user.businessId, record.categoryId);
+      console.log("record", record);
       form.setFieldsValue(record);
       setImageFile({
         url: record.image,
@@ -238,33 +246,34 @@ const Items = () => {
   };
 
   const handleFormSubmit = async (values) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+
     try {
       const formData = new FormData();
       formData.append('name', values.name);
-      formData.append('description', values.description);
-      if (status === 1) {
-        formData.append("status", 1);
-      } else {
-        formData.append("status", 2);
-      }
-      if (isAvailable === 1) {
-        formData.append("isAvailable", 1);
-      } else {
-        formData.append("isAvailable", 2);
-      }
-      formData.append('price', values.price);
+      formData.append('status', status === 1 ? 1 : 2);
+      formData.append('isAvailable', isAvailable === 1 ? 1 : 2);
+      formData.append('price', values.price== undefined ? "" : values.price);
+      formData.append('description', values.description== undefined ? "" : values.description);
       formData.append('categoryId', values.categoryId);
       formData.append('subCategoryId', values.subCategoryId);
       formData.append('businessId', user.businessId);
       formData.append('code', business.code);
+
+      // Validate image before submission
       if (imageFile?.originFileObj) {
-        formData.append("image", imageFile.originFileObj);
-      }
+        if (!allowedTypes.includes(imageFile.originFileObj.type)) {
+          notificationApi.error({
+            message: "Invalid File",
+            description: "Only JPEG, PNG, JPG, or WEBP files are allowed.",
+          });
+          return;
+        }
+        formData.append('image', imageFile.originFileObj);
+      } 
 
-
-      // Check if it's update or create
       if (currentRecord?.id) {
-        formData.append('_method', 'PUT'); // Laravel expects PUT via POST if using method spoofing
+        formData.append('_method', 'PUT');
         await apiService.post(`/items/${currentRecord.id}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
@@ -272,7 +281,7 @@ const Items = () => {
         });
         notificationApi.success({
           message: "Updated",
-          description: "Items updated successfully!",
+          description: "Item updated successfully!",
         });
       } else {
         await apiService.post(`/items`, formData, {
@@ -282,7 +291,7 @@ const Items = () => {
         });
         notificationApi.success({
           message: "Created",
-          description: "Items created successfully!",
+          description: "Item created successfully!",
         });
       }
 
@@ -292,36 +301,11 @@ const Items = () => {
       console.error("Error saving item:", error);
       notificationApi.error({
         message: "Failed to save",
-        description: "Failed to save item. Please try again.",
+        description: error.response?.data?.message || "Failed to save item. Please try again.",
       });
     }
   };
 
-  const handleDelete = (record) => {
-    Modal.confirm({
-      title: "Are you sure you want to delete this item?",
-      content: "This action cannot be undone.",
-      okText: "Yes",
-      okType: "danger",
-      cancelText: "No",
-      onOk: async () => {
-        try {
-          await apiService.delete(`/items/${record.id}`);
-          notificationApi.success({
-            message: "Deletion",
-            description: "Item deleted successfully!",
-          });
-          fetchItems(user.businessId);
-        } catch (error) {
-          console.error("Error deleting item:", error);
-          notificationApi.error({
-            message: "Failed to delete",
-            description: "Failed to delete item. Please try again.",
-          });
-        }
-      },
-    });
-  };
 
   const handleCategoryChange = (value) => {
     setSubCategory([]);
@@ -331,7 +315,7 @@ const Items = () => {
   const handleStatus = async (checked, record) => {
     try {
       const status = checked ? 1 : 2;
-      await apiService.put(`/items/update/${record.id}`, { status });
+      await apiService.put(`/items/${record.id}`, { status });
 
       setFilteredData((prevState) =>
         prevState.map((item) => (item.id === record.id ? { ...item, status } : item))
@@ -340,13 +324,13 @@ const Items = () => {
       notificationApi.success({
         message: "Status Updated",
         description: `Category "${record.name}" has been ${checked ? "enabled" : "disabled"}.`,
-        placement: "bottomRight",
+
       });
     } catch (error) {
       notificationApi.error({
         message: "Update Failed",
         description: error.response?.data?.message || "Failed to update category status",
-        placement: "bottomRight",
+
       });
     }
   };
@@ -354,7 +338,7 @@ const Items = () => {
   const handleAvailablity = async (checked, record) => {
     try {
       const isAvailable = checked ? 1 : 2;
-      await apiService.put(`/items/update/${record.id}`, { isAvailable });
+      await apiService.put(`/items/${record.id}`, { isAvailable });
 
       setFilteredData((prevState) =>
         prevState.map((item) => (item.id === record.id ? { ...item, isAvailable } : item))
@@ -363,13 +347,13 @@ const Items = () => {
       notificationApi.success({
         message: "Availability Updated",
         description: `Category "${record.name}" is now ${checked ? "available" : "unavailable"}.`,
-        placement: "bottomRight",
+
       });
     } catch {
       notificationApi.error({
         message: "Update Failed",
         description: "Failed to update category availability.",
-        placement: "bottomRight",
+
       });
     }
   };
@@ -381,6 +365,38 @@ const Items = () => {
     );
     setFilteredData(filtered);
   };
+
+  const handleDelete = (record) => {
+    setRecordToDelete(record);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await apiService.delete(`/items/${recordToDelete.id}`);
+      notificationApi.success({
+        message: "Deleted",
+        description: "Item deleted successfully!",
+      });
+      fetchItems(user.businessId);
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      notificationApi.error({
+        message: "Failed to delete",
+        description: "Failed to delete item. Please try again.",
+      });
+    } finally {
+      setIsDeleteModalOpen(false);
+      setRecordToDelete(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setRecordToDelete(null);
+  };
+
+
 
   return (
     <App>
@@ -524,6 +540,19 @@ const Items = () => {
           </Form.Item>
         </Form>
       </Drawer>
+
+      <Modal
+        title="Are you sure you want to delete this item?"
+        open={isDeleteModalOpen}
+        onOk={confirmDelete}
+        onCancel={cancelDelete}
+        okText="Yes"
+        cancelText="No"
+        okType="danger"
+      >
+        <p>This action cannot be undone.</p>
+      </Modal>
+
     </App>
   );
 };

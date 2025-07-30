@@ -41,6 +41,8 @@ const SubCategory = () => {
   const [imageFile, setImageFile] = useState(null);
   const [status, setStatus] = useState(1);
   const [isAvailable, setIsAvailable] = useState(1);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState(null);
 
   useEffect(() => {
     if (user?.businessId) {
@@ -107,7 +109,7 @@ const SubCategory = () => {
     try {
       const formData = new FormData();
       formData.append('name', values.name);
-       if (status === 1) {
+      if (status === 1) {
         formData.append("status", 1);
       } else {
         formData.append("status", 2);
@@ -160,38 +162,6 @@ const SubCategory = () => {
   };
 
 
-
-  const handleDelete = (record) => {
-    Modal.confirm({
-      title: "Are you sure you want to delete this category?",
-      content: "This action cannot be undone.",
-      okText: "Yes",
-      okType: "danger",
-      cancelText: "No",
-      onOk: async () => {
-        try {
-          await apiService.delete(`/subcategory/${record.id}`);
-          notificationApi.success({
-            message: "Deletion",
-            description: "Category deleted successfully!",
-            placement: "bottomRight",
-          });
-          fetchSubCategories(user.businessId);
-        } catch (error) {
-          console.error("Error deleting category:", error);
-          notificationApi.success({
-            message: "Failed to delete",
-            description: "Failed to delete category. Please try again.",
-            placement: "bottomRight",
-          });
-        }
-      },
-      onCancel() {
-        // Do nothing if cancelled
-      },
-    });
-  };
-
   const handleImageUpload = (info) => {
     const file = info.file;
     const isImage = file.type.startsWith('image/');
@@ -240,7 +210,7 @@ const SubCategory = () => {
       width: "200",
       render: (image) => (
         <Image
-          src={`${apiService.apiUrl}${image}`}
+          src={`${apiService.apiUrl}/${image}`}
           alt="item"
           style={{
             width: 150,
@@ -300,13 +270,13 @@ const SubCategory = () => {
       notificationApi.success({
         message: "Status Updated",
         description: `Category "${record.name}" has been ${checked ? "enabled" : "disabled"}.`,
-        placement: "bottomRight",
+        
       });
     } catch (error) {
       notificationApi.error({
         message: "Update Failed",
         description: error.response?.data?.message || "Failed to update category status",
-        placement: "bottomRight",
+        
       });
     }
   };
@@ -323,13 +293,13 @@ const SubCategory = () => {
       notificationApi.success({
         message: "Availability Updated",
         description: `Category "${record.name}" is ${checked ? "now available" : "changed to unavailable"}.`,
-        placement: "bottomRight",
+        
       });
     } catch {
       notificationApi.error({
         message: "Update Failed",
         description: "Failed to update category availability.",
-        placement: "bottomRight",
+        
       });
     }
   };
@@ -348,6 +318,41 @@ const SubCategory = () => {
     setCurrentRecord(null);
     form.resetFields();
   };
+
+  const handleDelete = (record) => {
+    setRecordToDelete(record);
+    setIsDeleteModalOpen(true);
+  };
+
+
+  const confirmDelete = async () => {
+    if (!recordToDelete) return;
+    try {
+      await apiService.delete(`/sub-categories/${recordToDelete.id}`);
+      notificationApi.success({
+        message: "Deletion",
+        description: "Category deleted successfully!",
+        
+      });
+      fetchSubCategories(user.businessId);
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      notificationApi.error({
+        message: "Failed to delete",
+        description: "Failed to delete category. Please try again.",
+        
+      });
+    } finally {
+      setIsDeleteModalOpen(false);
+      setRecordToDelete(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setRecordToDelete(null);
+  };
+
 
 
 
@@ -436,6 +441,8 @@ const SubCategory = () => {
               unCheckedChildren="Off"
             />
           </Form.Item>
+
+
           <Form.Item name="image" label="Category Image">
             <Space direction="horizontal" align="start">
               {imageFile?.url && (
@@ -455,6 +462,7 @@ const SubCategory = () => {
               </Upload>
             </Space>
           </Form.Item>
+          
 
           <Form.Item>
             <Button
@@ -474,6 +482,20 @@ const SubCategory = () => {
           </Form.Item>
         </Form>
       </Drawer>
+
+
+      <Modal
+        open={isDeleteModalOpen}
+        title="Are you sure you want to delete this category?"
+        onOk={confirmDelete}
+        onCancel={cancelDelete}
+        okText="Yes"
+        cancelText="No"
+        okType="danger"
+      >
+        <p>This action cannot be undone.</p>
+      </Modal>
+
     </App>
   );
 };

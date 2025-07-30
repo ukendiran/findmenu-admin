@@ -45,7 +45,7 @@ export default function AccountSettings({ businessId, userId }) {
       notificationApi.error({
         message: "Error",
         description: !isImage ? "Only image files are allowed" : "Image must be smaller than 2MB!",
-        placement: "bottomRight",
+        
       });
       return false;
     }
@@ -65,7 +65,6 @@ export default function AccountSettings({ businessId, userId }) {
       Object.keys(values).forEach(key => {
         formData.append(key, values[key]);
       });
-      formData.append('oldImage', (userData.image).replace(`${apiService.appUrl}/`, ""));
       formData.append('id', userData.id);
       // formData.append('businessCode', userData.businessCode);
 
@@ -79,7 +78,7 @@ export default function AccountSettings({ businessId, userId }) {
             notificationApi.success({
               message: "Profile Updated",
               description: "Profile Details updated Successfully.",
-              placement: "bottomRight",
+              
             });
             setUserData(formData)
           }

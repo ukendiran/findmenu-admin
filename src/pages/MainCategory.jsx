@@ -34,6 +34,9 @@ const MainCategory = () => {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState(1);
   const [isAvailable, setIsAvailable] = useState(1);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState(null);
+
 
   useEffect(() => {
     if (user?.businessId) {
@@ -157,24 +160,6 @@ const MainCategory = () => {
     }
   };
 
-  const handleDelete = (record) => {
-    Modal.confirm({
-      title: "Delete Category",
-      content: "Are you sure you want to delete this category?",
-      onOk: async () => {
-        try {
-          await apiService.delete(`/main-categories/${record.id}`);
-          notificationApi.success({ message: "Deleted", description: "Category deleted successfully!" });
-          fetchCategories(user.businessId);
-        } catch (error) {
-          notificationApi.error({
-            message: "Delete Failed",
-            description: error.response?.data?.message || "Unable to delete category",
-          });
-        }
-      },
-    });
-  };
 
 
   const handleStatus = async (checked, record) => {
@@ -189,13 +174,13 @@ const MainCategory = () => {
       notificationApi.success({
         message: "Status Updated",
         description: `Category "${record.name}" has been ${checked ? "enabled" : "disabled"}.`,
-        placement: "bottomRight",
+        
       });
     } catch (error) {
       notificationApi.error({
         message: "Update Failed",
         description: error.response?.data?.message || "Failed to update category status",
-        placement: "bottomRight",
+        
       });
     }
   };
@@ -212,13 +197,12 @@ const MainCategory = () => {
       notificationApi.success({
         message: "Availability Updated",
         description: `Category "${record.name}" is  ${checked ? "now available" : "change to unavailable"}.`,
-        placement: "bottomRight",
+        
       });
     } catch {
       notificationApi.error({
         message: "Update Failed",
-        description: "Failed to update category availability.",
-        placement: "bottomRight",
+        description: "Failed to update category availability.",        
       });
     }
   };
@@ -278,6 +262,37 @@ const MainCategory = () => {
   };
 
 
+  const handleDelete = (record) => {
+    setRecordToDelete(record);
+    setIsDeleteModalOpen(true);
+  };
+
+
+  const confirmDelete = async () => {
+    if (!recordToDelete) return;
+
+    try {
+      await apiService.delete(`/main-categories/${recordToDelete.id}`);
+      notificationApi.success({
+        message: "Deleted",
+        description: "Category deleted successfully!",
+      });
+      fetchCategories(user.businessId);
+    } catch (error) {
+      notificationApi.error({
+        message: "Delete Failed",
+        description: error.response?.data?.message || "Unable to delete category",
+      });
+    } finally {
+      setIsDeleteModalOpen(false);
+      setRecordToDelete(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setRecordToDelete(null);
+  };
 
 
   return (
@@ -381,6 +396,19 @@ const MainCategory = () => {
           </Form.Item>
         </Form>
       </Drawer>
+
+      <Modal
+        title="Delete Category"
+        open={isDeleteModalOpen}
+        onOk={confirmDelete}
+        onCancel={cancelDelete}
+        okText="Yes"
+        cancelText="No"
+        okType="danger"
+      >
+        <p>Are you sure you want to delete this category?</p>
+      </Modal>
+
     </App>
   );
 };

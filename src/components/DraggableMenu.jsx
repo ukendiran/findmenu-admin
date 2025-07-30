@@ -83,7 +83,7 @@ const DraggableMenu = ({ businessId, controller }) => {
         notificationApi.success({
           message: "Menu ordering",
           description: "Menu Ordering updated Successfully.",
-          placement: "bottomRight",
+          
         });
       } else {
         notificationApi.error({ message: "Error", description: "Error on Update", placement: "bottomRight" });
