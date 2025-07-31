@@ -70,8 +70,6 @@ const BusinessProfile = () => {
       const blob = await response.blob();
       formData.append('profileImage', blob, 'profile.jpg');
     }
-
-
     try {
       const response = apiService.put(`business`, formData);
       console.log(response)
@@ -79,26 +77,6 @@ const BusinessProfile = () => {
       console.log(error)
       message.error('An error occurred while saving the profile');
     }
-
-
-    // try {
-    //   const response = await fetch('http://your-api-endpoint.com/save_business.php', {
-    //     method: 'POST',
-    //     body: formData
-    //   });
-
-    //   const result = await response.json();
-    //   if (result.success) {
-    //     message.success('Business profile saved successfully');
-    //     setIsEditing(false);
-    //   } else {
-    //     message.error(result.message || 'Failed to save profile');
-    //   }
-    // } catch (error) {
-    //   message.error('An error occurred while saving the profile');
-    // }
-
-
   };
 
   const uploadButton = (
