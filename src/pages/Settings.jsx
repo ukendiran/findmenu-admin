@@ -4,11 +4,13 @@ import BusinessDetails from "../Settings/BusinessDetails";
 import Notifications from "../Settings/Notifications";
 import QRCodePage from "../Settings/QRCodePage";
 import MenuManagement from "../Settings/MenuManagement";
+import PasswordManagement from "../Settings/PasswordManagement";
 const { Title } = Typography
 
 const Settings = () => {
   const user = useSelector((state) => state.auth.user);
   const business = useSelector((state) => state.auth.business);
+
   if (!user) {
     return <p>Loading user data...</p>; // ✅ Prevents rendering before `user` is available
   }
@@ -34,6 +36,11 @@ const Settings = () => {
       key: "4",
       label: "Menu Management",
       children: <MenuManagement businessId={user.businessId} />,
+    },
+    {
+      key: "5",
+      label: "Password Management",
+      children: <PasswordManagement business={business} />,
     },
   ];
 
