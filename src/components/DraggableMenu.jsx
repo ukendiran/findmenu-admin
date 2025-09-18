@@ -5,6 +5,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { App, Button, notification } from "antd";
 import { MenuOutlined } from "@ant-design/icons";
 import apiService from "../services/apiService";
+import { extractErrorMessages } from "../utils/errorHelper";
 
 const ItemType = "ITEM";
 
@@ -83,13 +84,13 @@ const DraggableMenu = ({ businessId, controller }) => {
         notificationApi.success({
           message: "Menu ordering",
           description: "Menu Ordering updated Successfully.",
-          
+
         });
       } else {
-        notificationApi.error({ message: "Error", description: "Error on Update", placement: "bottomRight" });
+        notificationApi.error({ message: "Error", description: "Error on Update" });
       }
     } catch (error) {
-      console.error("Error fetching categories:", error);
+      notificationApi.error({ message: "Error", description: extractErrorMessages(error, 'Error Saving. Try again') });
     }
   };
 

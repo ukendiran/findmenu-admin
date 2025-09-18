@@ -2,16 +2,15 @@ import { Layout, Row, Col, Card } from "antd";
 import { useEffect, useState } from "react";
 import apiService from "../services/apiService";
 import { useSelector } from "react-redux";
-
 const { Content } = Layout;
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState([]);
   const user = useSelector((state) => state.auth.user);
-
   useEffect(() => {
     getDashboardData();
   }, []);
+
 
   const getDashboardData = async () => {
     setDashboardData([]);
@@ -48,7 +47,7 @@ const Dashboard = () => {
               {dashboardData?.feedback_count ? dashboardData?.feedback_count : 0} Active
             </Card>
           </Col>
-         
+
         </Row>
       </Content>
     </div>

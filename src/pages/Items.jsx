@@ -19,7 +19,7 @@ import {
 import { useSelector } from "react-redux";
 import apiService from "../services/apiService";
 import { SearchOutlined, UploadOutlined } from "@ant-design/icons";
-
+import { extractErrorMessages } from "../utils/errorHelper";
 const { Title } = Typography;
 const { Option } = Select;
 
@@ -175,14 +175,11 @@ const Items = () => {
       const response = await apiService.get(`/items-with-category`, {
         businessId,
       });
-      console.log("response", response.data);
       if (response.data?.data) {
         const dataWithKeys = response.data.data.map((item, index) => ({
           ...item,
           key: item.id || index,
         }));
-
-
         setData(dataWithKeys);
         setFilteredData(dataWithKeys);
       }
@@ -226,7 +223,6 @@ const Items = () => {
     setCurrentRecord(record);
     if (record) {
       fetchSubCategories(user.businessId, record.categoryId);
-      console.log("record", record);
       form.setFieldsValue(record);
       setImageFile({
         url: record.image,
@@ -253,8 +249,8 @@ const Items = () => {
       formData.append('name', values.name);
       formData.append('status', status === 1 ? 1 : 2);
       formData.append('isAvailable', isAvailable === 1 ? 1 : 2);
-      formData.append('price', values.price== undefined ? "" : values.price);
-      formData.append('description', values.description== undefined ? "" : values.description);
+      formData.append('price', values.price == undefined ? "" : values.price);
+      formData.append('description', values.description == undefined ? "" : values.description);
       formData.append('categoryId', values.categoryId);
       formData.append('subCategoryId', values.subCategoryId);
       formData.append('businessId', user.businessId);
@@ -270,7 +266,7 @@ const Items = () => {
           return;
         }
         formData.append('image', imageFile.originFileObj);
-      } 
+      }
 
       if (currentRecord?.id) {
         formData.append('_method', 'PUT');
@@ -298,10 +294,9 @@ const Items = () => {
       fetchItems(user.businessId);
       handleDrawerCancel();
     } catch (error) {
-      console.error("Error saving item:", error);
       notificationApi.error({
         message: "Failed to save",
-        description: error.response?.data?.message || "Failed to save item. Please try again.",
+        description: extractErrorMessages(error, 'Failed to save item. Please try again.')
       });
     }
   };
@@ -329,8 +324,7 @@ const Items = () => {
     } catch (error) {
       notificationApi.error({
         message: "Update Failed",
-        description: error.response?.data?.message || "Failed to update category status",
-
+        description: extractErrorMessages(error, 'Failed to update category status')
       });
     }
   };
@@ -343,17 +337,14 @@ const Items = () => {
       setFilteredData((prevState) =>
         prevState.map((item) => (item.id === record.id ? { ...item, isAvailable } : item))
       );
-
       notificationApi.success({
         message: "Availability Updated",
         description: `Category "${record.name}" is now ${checked ? "available" : "unavailable"}.`,
-
       });
     } catch {
       notificationApi.error({
         message: "Update Failed",
-        description: "Failed to update category availability.",
-
+        description: extractErrorMessages(error, 'Failed to update category availability')
       });
     }
   };
@@ -380,10 +371,9 @@ const Items = () => {
       });
       fetchItems(user.businessId);
     } catch (error) {
-      console.error("Error deleting item:", error);
       notificationApi.error({
         message: "Failed to delete",
-        description: "Failed to delete item. Please try again.",
+        description: extractErrorMessages(error, 'Failed to delete item. Please try again.')
       });
     } finally {
       setIsDeleteModalOpen(false);

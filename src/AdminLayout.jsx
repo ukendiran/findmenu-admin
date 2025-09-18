@@ -45,9 +45,6 @@ const AdminLayout = () => {
     return <Spin fullscreen />;
   }
 
-
-
-
   const handleLogout = () => {
     dispatch(logout());
     notificationApi.success({
@@ -90,6 +87,14 @@ const AdminLayout = () => {
       ],
     },
     {
+      key: "accounts",
+      icon: <SettingOutlined />, label: "Accounts",
+      children: [
+        { key: "/accounts/subscriptions", icon: <TeamOutlined />, label: "Subscriptions", path: "/accounts/subscriptions" },
+        { key: "/accounts/payments", icon: <TeamOutlined />, label: "Payments", path: "/accounts/payments" },
+      ],
+    },
+    {
       key: "others",
       icon: <SettingOutlined />, label: "Others",
       children: [
@@ -97,7 +102,7 @@ const AdminLayout = () => {
         { key: "/import", label: "Import", path: "/import" },
       ],
     },
-    { key: "/payments", icon: <TeamOutlined />, label: "Payments", path: "/payments" },
+
     { key: "/settings", icon: <SettingOutlined />, label: "Settings", path: "/settings" },
     { key: "logout", icon: <SettingOutlined />, label: "Logout", onClick: handleLogout },
   ];

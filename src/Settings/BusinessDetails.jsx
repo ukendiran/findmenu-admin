@@ -25,7 +25,7 @@ export default function BusinessDetails({ businessId }) {
   const [imageFile, setImageFile] = useState(null);
   const [bannerImageFile, setBannerImageFile] = useState(null);
   const [businessData, setBusinessData] = useState(null);
-  const [api, contextHolder] = notification.useNotification();
+  const [notificationApi, contextHolder] = notification.useNotification();
 
   const getFullUrl = (file) => {
     if (!file) return null;
@@ -47,7 +47,6 @@ export default function BusinessDetails({ businessId }) {
         setBannerImageFile({ name: data.bannerImage, url: data.bannerImage });
       } catch (e) {
         console.error("Error fetching business data:", e);
-        showNotification('error', 'Error', 'Failed to fetch business data');
       } finally {
         setLoading(false);
       }
@@ -56,24 +55,23 @@ export default function BusinessDetails({ businessId }) {
     fetchBusinessData();
   }, [businessId]);
 
-  // Notification helper to avoid calling in render
-  const showNotification = (type, message, description) => {
-    api[type]({ message, description });
-  };
-
   const handleImageUpload = (info, setter) => {
     const file = info.file;
     const isImage = file.type?.startsWith("image/");
     const isLt2M = file.size / 1024 / 1024 < 2;
 
     if (!isImage || !isLt2M) {
-      showNotification(
-        'error',
-        'Upload Error',
-        isImage ? "Image must be smaller than 2MB!" : "Only image files are allowed"
-      );
+      setTimeout(() => {
+        notificationApi.error({
+          message: 'Upload Error',
+          description: isImage
+            ? "Image must be smaller than 2MB!"
+            : "Only image files are allowed",
+        });
+      }, 0);
       return false;
     }
+
 
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -111,7 +109,6 @@ export default function BusinessDetails({ businessId }) {
       if (bannerImageFile?.originFileObj) {
         formData.append("bannerImage", bannerImageFile.originFileObj);
       }
-
       const response = await apiService.post(`/business/${businessData.id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -119,18 +116,35 @@ export default function BusinessDetails({ businessId }) {
       });
 
       if (response.data.success) {
-        showNotification('success', 'Updated', 'Business updated successfully!');
         // Update local state with new data
         const updatedData = { ...businessData, ...values };
         if (response.data.data?.image) updatedData.image = response.data.data.image;
         if (response.data.data?.bannerImage) updatedData.bannerImage = response.data.data.bannerImage;
         setBusinessData(updatedData);
+
+        // Defer notification
+        setTimeout(() => {
+          notificationApi.success({
+            message: "Updated",
+            description: "Business updated successfully!",
+          });
+        }, 0);
       } else {
-        throw new Error(response.data.message || "Update failed");
+        setTimeout(() => {
+          notificationApi.error({
+            message: "Update Failed",
+            description: "Unable to update",
+          });
+        }, 0);
       }
-    } catch (e) {
-      console.error("Error updating business:", e);
-      showNotification('error', 'Error', e.message || 'Failed to update business');
+
+    } catch (error) {
+      setTimeout(() => {
+        notificationApi.error({
+          message: "Save Failed",
+          description: extractErrorMessages(error, 'Failed to update business'),
+        });
+      }, 0);
     } finally {
       setLoading(false);
     }
@@ -145,7 +159,7 @@ export default function BusinessDetails({ businessId }) {
   }
 
   return (
-    <App>
+    <>
       {contextHolder}
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <Row gutter={[16, 16]}>
@@ -278,7 +292,7 @@ export default function BusinessDetails({ businessId }) {
           </Col>
         </Row>
       </Form>
-    </App>
+    </>
   );
 }
 

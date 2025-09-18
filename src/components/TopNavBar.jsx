@@ -9,8 +9,9 @@ import {
   Space,
   Switch,
   Typography,
-  notification,
   theme,
+  App,
+  notification
 } from "antd";
 import {
   SettingOutlined,
@@ -26,6 +27,8 @@ import PropTypes from "prop-types";
 import { useDispatch } from "react-redux";
 import { logout } from "../store/slices/authSlice";
 
+
+
 const { Header } = Layout;
 const { Text } = Typography;
 
@@ -39,14 +42,14 @@ export default function TopNavBar({
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { token: { colorBgContainer } } = theme.useToken();
-
   // ✅ Sidebar toggle state
   const [isCollapsed, setIsCollapsed] = useState(collapsed);
+
+  const [notificationApi, contextHolder] = notification.useNotification();
 
   // ✅ Toggle sidebar function
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
-    console.log(!isCollapsed)
     handleCollapsed(!isCollapsed);
   };
 
@@ -92,15 +95,21 @@ export default function TopNavBar({
     ],
     onClick: ({ key }) => {
       if (key === "logout") {
-        dispatch(logout(userData));
-        navigate("/login");
-        notification.success(
+
+        notificationApi.success(
           {
             message: "Logout Success",
             description: "Logged out successfully.",
             placement: "topRight"
           }
         );
+
+        // Wait a bit before navigating to allow notification to show
+        setTimeout(() => {
+          dispatch(logout(userData));
+          navigate("/login");
+        }, 1000);
+
       } else {
         navigate(`/${key}`);
       }
@@ -109,43 +118,46 @@ export default function TopNavBar({
 
 
   return (
-    <Header
-      style={{
-        padding: 0,
-        background: colorBgContainer,
-        position: "sticky",
-        top: 0,
-        zIndex: 1,
-        width: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-      }}
-    >
-      <Button
-        type="text"
-        icon={isCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-        onClick={toggleSidebar}
-        style={{ fontSize: "16px", width: 64, height: 64 }}
-      />
+    <App>
+      {contextHolder}
+      <Header
+        style={{
+          padding: 0,
+          background: colorBgContainer,
+          position: "sticky",
+          top: 0,
+          zIndex: 1,
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Button
+          type="text"
+          icon={isCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          onClick={toggleSidebar}
+          style={{ fontSize: "16px", width: 64, height: 64 }}
+        />
 
-      {/* Top Right Menu */}
-      <Space style={{ marginRight: 24 }}>
-        Google Review
-        <Switch checkedChildren="On" unCheckedChildren="Off" checked={configData?.googleReviewStatus === 1} onChange={handleGoogleReview} />
-        <Dropdown disabled={true} trigger={["click"]} dropdownRender={() => notificationContent}>
-          <Badge count={unreadCount} size="small">
-            <Button type="text" icon={<BellOutlined style={{ fontSize: "18px" }} />} />
-          </Badge>
-        </Dropdown>
-        <Dropdown menu={profileMenu}>
-          <Space style={{ cursor: "pointer" }}>
-            <Avatar icon={<UserOutlined />} />
-            <span>{userData.name}</span>
-          </Space>
-        </Dropdown>
-      </Space>
-    </Header>
+        {/* Top Right Menu */}
+        <Space style={{ marginRight: 24 }}>
+          Google Review
+          <Switch checkedChildren="On" unCheckedChildren="Off" checked={configData?.googleReviewStatus === 1} onChange={handleGoogleReview} />
+          <Dropdown disabled={true} trigger={["click"]} dropdownRender={() => notificationContent}>
+            <Badge count={unreadCount} size="small">
+              <Button type="text" icon={<BellOutlined style={{ fontSize: "18px" }} />} />
+            </Badge>
+          </Dropdown>
+          <Dropdown menu={profileMenu}>
+            <Space style={{ cursor: "pointer" }}>
+              <Avatar icon={<UserOutlined />} />
+              <span>{userData.name}</span>
+            </Space>
+          </Dropdown>
+        </Space>
+      </Header>
+    </App>
   );
 }
 

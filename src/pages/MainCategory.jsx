@@ -17,6 +17,7 @@ import {
 import { useSelector } from "react-redux";
 import { SearchOutlined, UploadOutlined } from "@ant-design/icons";
 import apiService from "../services/apiService";
+import { extractErrorMessages } from "../utils/errorHelper";
 
 const { Title } = Typography;
 
@@ -60,7 +61,7 @@ const MainCategory = () => {
     } catch (error) {
       notificationApi.error({
         message: "Fetch Error",
-        description: error.response?.data?.message || "Failed to load categories",
+        description: extractErrorMessages(error, 'Failed to load categories'),
       });
     } finally {
       setLoading(false);
@@ -155,7 +156,7 @@ const MainCategory = () => {
     } catch (error) {
       notificationApi.error({
         message: "Save Failed",
-        description: error.response?.data?.message || "Unable to save category",
+        description: extractErrorMessages(error, 'Unable to save category'),
       });
     }
   };
@@ -174,13 +175,13 @@ const MainCategory = () => {
       notificationApi.success({
         message: "Status Updated",
         description: `Category "${record.name}" has been ${checked ? "enabled" : "disabled"}.`,
-        
+
       });
     } catch (error) {
       notificationApi.error({
         message: "Update Failed",
         description: error.response?.data?.message || "Failed to update category status",
-        
+
       });
     }
   };
@@ -197,12 +198,12 @@ const MainCategory = () => {
       notificationApi.success({
         message: "Availability Updated",
         description: `Category "${record.name}" is  ${checked ? "now available" : "change to unavailable"}.`,
-        
+
       });
     } catch {
       notificationApi.error({
         message: "Update Failed",
-        description: "Failed to update category availability.",        
+        description: "Failed to update category availability.",
       });
     }
   };

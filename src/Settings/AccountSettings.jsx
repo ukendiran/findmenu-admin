@@ -5,6 +5,7 @@ import apiService from "../../services/apiService";
 import { useEffect, useState } from "react";
 import { PropTypes } from "prop-types";
 import { UploadOutlined } from "@ant-design/icons";
+import { extractErrorMessages } from "../utils/errorHelper";
 
 
 export default function AccountSettings({ businessId, userId }) {
@@ -18,8 +19,6 @@ export default function AccountSettings({ businessId, userId }) {
     getUserData();
   }, [businessId]);
 
-
-
   const getUserData = async () => {
     try {
       const result = await apiService.get(`/users/${userId}`);
@@ -28,7 +27,6 @@ export default function AccountSettings({ businessId, userId }) {
         setUserData(response);
         setLoading(false);
         setImageFile({ url: response.image, name: response.image });
-
       }
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -45,7 +43,6 @@ export default function AccountSettings({ businessId, userId }) {
       notificationApi.error({
         message: "Error",
         description: !isImage ? "Only image files are allowed" : "Image must be smaller than 2MB!",
-        
       });
       return false;
     }
@@ -78,22 +75,20 @@ export default function AccountSettings({ businessId, userId }) {
             notificationApi.success({
               message: "Profile Updated",
               description: "Profile Details updated Successfully.",
-              
+
             });
             setUserData(formData)
           }
         });
-    } catch {
-      notificationApi.error({ message: "Error", description: "Error on Update", placement: "bottomRight" });
-
+    } catch (error) {
+      notificationApi.error({
+        message: "Save Failed",
+        description: extractErrorMessages(error, 'Unable to update. Try again'),
+      });
     } finally {
       setLoading(false);
     }
   };
-
-
-
-
 
   return (
     <App>

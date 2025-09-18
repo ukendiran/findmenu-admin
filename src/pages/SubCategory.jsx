@@ -19,7 +19,7 @@ import {
 
 import { useSelector } from "react-redux";
 import apiService from "../services/apiService";
-
+import { extractErrorMessages } from "../utils/errorHelper";
 import { SearchOutlined, UploadOutlined } from "@ant-design/icons";
 
 
@@ -153,10 +153,9 @@ const SubCategory = () => {
       fetchSubCategories(user.businessId);
       handleDrawerCancel();
     } catch (error) {
-      console.error("Form submission error:", error);
       notificationApi.error({
         message: "Save Failed",
-        description: error.response?.data?.message || "Unable to save sub-category",
+        description: extractErrorMessages(error, 'Unable to save sub-category'),
       });
     }
   };
@@ -270,13 +269,12 @@ const SubCategory = () => {
       notificationApi.success({
         message: "Status Updated",
         description: `Category "${record.name}" has been ${checked ? "enabled" : "disabled"}.`,
-        
+
       });
     } catch (error) {
       notificationApi.error({
         message: "Update Failed",
-        description: error.response?.data?.message || "Failed to update category status",
-        
+        description: extractErrorMessages(error, 'Failed to update category status'),
       });
     }
   };
@@ -293,13 +291,12 @@ const SubCategory = () => {
       notificationApi.success({
         message: "Availability Updated",
         description: `Category "${record.name}" is ${checked ? "now available" : "changed to unavailable"}.`,
-        
+
       });
     } catch {
       notificationApi.error({
         message: "Update Failed",
         description: "Failed to update category availability.",
-        
       });
     }
   };
@@ -332,15 +329,13 @@ const SubCategory = () => {
       notificationApi.success({
         message: "Deletion",
         description: "Category deleted successfully!",
-        
+
       });
       fetchSubCategories(user.businessId);
     } catch (error) {
-      console.error("Error deleting category:", error);
       notificationApi.error({
         message: "Failed to delete",
-        description: "Failed to delete category. Please try again.",
-        
+        description: extractErrorMessages(error, 'Failed to delete category. Please try again.'),
       });
     } finally {
       setIsDeleteModalOpen(false);
@@ -462,7 +457,7 @@ const SubCategory = () => {
               </Upload>
             </Space>
           </Form.Item>
-          
+
 
           <Form.Item>
             <Button
