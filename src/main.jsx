@@ -7,12 +7,15 @@ import "./index.css";
 import App from "./App.jsx";
 import { ConfigProvider } from "antd";
 import theme from "./utils/theme.js";
+import { App as AntApp } from 'antd';
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <Provider store={store}>
       <ConfigProvider theme={theme}>
-        <App />
+        <AntApp>
+          <App />
+        </AntApp>
       </ConfigProvider>
     </Provider>
   </StrictMode>

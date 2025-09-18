@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { login } from "../store/slices/authSlice";
 import { Form, Input, Button, Card, Typography, notification, App } from "antd";
@@ -10,50 +10,76 @@ const { Title } = Typography;
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  const auth = localStorage.getItem("isAuthenticated");
-  if (auth) {
-    window.location.href = "/dashboard";
-  }
+  const [notificationApi, contextHolder] = notification.useNotification();
   const [loading, setLoading] = useState(false);
 
-  const onFinish = (values) => {
+  const onFinish = async (values) => {
     setLoading(true);
-    apiService
-      .post("login", values)
-      .then((response) => {
-        const result = response.data;
-        setLoading(false);
-        if (result.success) {
-          const data = {
-            user: result.data.user,
-            config: result.data.config,
-            business: result.data.business,
-            token: result.data.token,
-          };
-          dispatch(login(data));
-          navigate("/dashboard");
-        } else {
-          notification.warning({
-            message: "Error",
-            description: "Invalid Credentials",
-            placement: "topRight",
-          });
+    try {
+      const response = await apiService.post("login", values);
+      const result = response.data;
+
+      console.log(result)
+      let isSubscribed = false;
+      if (result.success) {
+        if (result.data.subscription !== null) {
+          isSubscribed = true
         }
-      })
-      .catch((error) => {
-        console.log(error);
-        setLoading(false);
-        notification.error({
-          message: "Network Error",
-          description: "There was a problem connecting to the server.",
+        const data = {
+          user: result.data.user,
+          config: result.data.config,
+          business: result.data.business,
+          isSubscribed: isSubscribed,
+          token: result.data.token,
+        };
+        dispatch(login(data));      
+        // Show notification first, then navigate
+        notificationApi.success({
+          message: "Logged in Successfully",
+          description: result.message || "Login Success",
+          placement: "topRight",
+          duration: 2, // Show for 2 seconds
+        });
+
+        // Wait a bit before navigating to allow notification to show
+        setTimeout(() => {
+          setLoading(false);
+          navigate("/dashboard");
+        }, 1000);
+
+      } else {
+        notificationApi.warning({
+          message: "Login Failed",
+          description: result.message || "Invalid credentials.",
           placement: "topRight",
         });
+      }
+    } catch (error) {
+      const status = error.response?.status;
+      const backendMsg = error.response?.data?.message;
+
+      let description = "There was a problem connecting to the server.";
+      if (status === 401) {
+        description = backendMsg || "Unauthorized: Invalid credentials.";
+      } else if (status === 422) {
+        description = backendMsg || "Validation failed. Check your input.";
+      } else if (status >= 500) {
+        description = "Server error. Please try again later.";
+      }
+
+      notificationApi.error({
+        message: "Login Error",
+        description,
+        placement: "topRight",
       });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <App>
+      {contextHolder}
       <div
         style={{
           display: "flex",
@@ -62,7 +88,14 @@ const Login = () => {
           marginTop: "10%",
         }}
       >
-        <Card style={{ width: 400, padding: 20, boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", borderRadius: 10 }}>
+        <Card
+          style={{
+            width: 400,
+            padding: 20,
+            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+            borderRadius: 10,
+          }}
+        >
           <Title level={2} style={{ textAlign: "center" }}>
             Login
           </Title>
