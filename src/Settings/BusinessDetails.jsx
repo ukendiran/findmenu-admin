@@ -198,14 +198,7 @@ export default function BusinessDetails({ businessId }) {
               </Select>
             </Form.Item>
 
-            <Form.Item
-              label="Business Type"
-              name="type"
-              rules={[{ required: true, message: "Business type is required" }]}
-              placeholder="E.g Restaurant"
-            >
-              <Input />
-            </Form.Item>
+            
           </Col>
 
           {/* Middle Column - Logo */}

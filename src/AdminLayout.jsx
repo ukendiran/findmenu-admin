@@ -4,6 +4,7 @@ import {
   SettingOutlined,
   DashboardOutlined,
   TeamOutlined,
+  MessageOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, theme, notification, App, Spin } from "antd";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
@@ -88,16 +89,8 @@ const AdminLayout = () => {
         { key: "/menus/sub-category", label: "Sub Category", path: "/menus/sub-category" },
         { key: "/menus/items", label: "Items", path: "/menus/items" },
       ],
-    },
-    {
-      key: "others",
-      icon: <SettingOutlined />, label: "Others",
-      children: [
-        { key: "/feedback", label: "Feedback", path: "/feedback" },
-        { key: "/import", label: "Import", path: "/import" },
-      ],
-    },
-    { key: "/payments", icon: <TeamOutlined />, label: "Payments", path: "/payments" },
+    },    
+    { key: "/feedback", icon: <MessageOutlined />, label: "Feedback", path: "/feedback" },
     { key: "/settings", icon: <SettingOutlined />, label: "Settings", path: "/settings" },
     { key: "logout", icon: <SettingOutlined />, label: "Logout", onClick: handleLogout },
   ];
