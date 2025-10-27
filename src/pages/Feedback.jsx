@@ -160,8 +160,8 @@ const Feedback = () => {
                           <Text strong style={{ fontSize: 16 }}>
                             {feedback.senderName || "Anonymous"}
                           </Text>
-                          <Text type="secondary" style={{ fontSize: 12 }}>
-                            {dayjs(feedback.createdAt).format("MMM D, YYYY h:mm A")}
+                          <Text type="secondary" style={{ fontSize: 12 }}>                       
+                            {dayjs(feedback.created_at).format("MMM D, YYYY h:mm A")}
                           </Text>
                         </div>
                       }
