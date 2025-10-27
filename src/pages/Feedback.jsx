@@ -1,46 +1,61 @@
-import { Layout, Menu, List, Avatar, Badge, notification, Tooltip, Space, App } from "antd";
 import {
-  InboxOutlined,
-  // InboxOutlined,
-  SendOutlined,
-
-} from "@ant-design/icons";
+  Layout,
+  List,
+  Avatar,
+  notification,
+  App,
+  Typography,
+  Card,
+  Spin,
+  Empty,
+  Input,
+  Row,
+  Col,
+} from "antd";
+import { MessageOutlined, SearchOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import apiService from "../services/apiService";
 import { useSelector } from "react-redux";
 import dayjs from "dayjs";
 import ParagraphList from "../components/ParagraphList";
 
-const { Header, Content, Sider } = Layout;
+const { Header, Content } = Layout;
+const { Title, Text } = Typography;
 
 const Feedback = () => {
   const user = useSelector((state) => state.auth.user);
   const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
 
-  const [selectedKey, setSelectedKey] = useState("new");
   const [notificationApi, contextHolder] = notification.useNotification();
 
   useEffect(() => {
-    fetchFeedback("new");
+    fetchFeedback();
   }, []);
 
-  const fetchFeedback = async (status) => {
-    setLoading(true);
+  useEffect(() => {
+    handleSearch();
+  }, [search, data]);
 
+  const fetchFeedback = async () => {
+    setLoading(true);
     try {
       const response = await apiService.get(`/feedbacks`, {
         businessId: user.businessId,
-        status: status,
       });
+
       if (response.data?.data) {
         const dataWithKeys = response.data.data.map((item, index) => ({
           ...item,
           key: item.id || index,
         }));
         setData(dataWithKeys);
+        setFilteredData(dataWithKeys);
       }
-    } catch {
+    } catch (err) {
+      console.error(err);
       notificationApi.error({
         message: "Error",
         description: `Failed to fetch feedback. Please try again.`,
@@ -50,156 +65,116 @@ const Feedback = () => {
     }
   };
 
-  const handleClick = (item) => {
-    setSelectedKey(item.key);
-    fetchFeedback(item.key);
-  };
-
-  const handleRead = (item, status, action) => {
-    try {
-      // const newStatus = action === 'new' ? 2 : 3
-      apiService.delete(`/feedbacks/${item.key}`, { status: status }).then(() => {
-        if (action === 'new') {
-          notificationApi.success({
-            message: "Success",
-            description: `Feedback marked as read.`,
-          });
-        } else {
-          notificationApi.error({
-            message: "Deleted",
-            description: `Feedback Deleted.`,
-          });
-        }
-        fetchFeedback(action);
-      });
-
-    } catch (error) {
-      console.error("Error updating message:", error);
-      notificationApi.error({
-        message: "Update Failed",
-        description: "Failed to update item availability. Please try again.",
-      });
+  const handleSearch = () => {
+    if (!search.trim()) {
+      setFilteredData(data);
+      return;
     }
-  };
 
-  const menuItems = [
-    {
-      key: "new",
-      icon: <InboxOutlined />,
-      label: "New",
-    },
-    {
-      key: "all",
-      icon: <SendOutlined />,
-      label: "All",
-    },
-  ];
+    const term = search.toLowerCase();
+    const filtered = data.filter(
+      (item) =>
+        item.senderName?.toLowerCase().includes(term) ||
+        item.message?.toLowerCase().includes(term)
+    );
+    setFilteredData(filtered);
+  };
 
   return (
     <App>
       {contextHolder}
-      <Layout style={{ height: "100vh", minWidth: "320px" }}>
+      <Layout style={{ height: "100vh", background: "#f5f7fa" }}>
         {/* Header */}
         <Header
           style={{
             background: "#fff",
-            padding: "0 16px",
+            boxShadow: "0 1px 4px rgba(0, 0, 0, 0.1)",
+            padding: "0 24px",
             display: "flex",
             alignItems: "center",
-            gap: "16px",
           }}
         >
-          <h1 style={{ margin: 0, fontSize: "20px", flexGrow: 1 }}>Feedback</h1>
-
+          <MessageOutlined style={{ fontSize: 24, color: "#1677ff", marginRight: 10 }} />
+          <Title level={3} style={{ margin: 0 }}>
+            Customer Feedback
+          </Title>
         </Header>
 
-        <Layout>
-          {/* Sidebar */}
-          <Sider
-            theme="light"
-            width={200}
-            breakpoint="md"
-            collapsedWidth="0"
-            style={{ borderRight: "1px solid #f0f0f0" }}
+        {/* Content */}
+        <Content style={{ padding: "24px", overflowY: "auto" }}>
+          <Card
+            style={{
+              borderRadius: 12,
+              boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
+              background: "#fff",
+            }}
           >
+            {/* Search Bar */}
+            <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+              <Col xs={24} sm={16} md={10}>
+                <Input
+                  prefix={<SearchOutlined />}
+                  placeholder="Search by name or message"
+                  allowClear
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </Col>
+            </Row>
 
-
-            <Menu
-              mode="inline"
-              selectedKeys={[selectedKey]}
-              onClick={handleClick}
-              items={menuItems}
-            />
-
-          </Sider>
-
-          {/* Content */}
-          <Content style={{ padding: "16px" }}>
-            {!loading && (
+            {/* Feedback List */}
+            {loading ? (
+              <div style={{ textAlign: "center", padding: "60px 0" }}>
+                <Spin tip="Loading feedback..." size="large" />
+              </div>
+            ) : filteredData.length === 0 ? (
+              <Empty description="No feedback found" style={{ padding: "60px 0" }} />
+            ) : (
               <List
                 itemLayout="horizontal"
-                dataSource={data}
-                pagination={{ pageSize: 10 }}
-                renderItem={(email) => (
+                dataSource={filteredData}
+                pagination={{ pageSize: 8, position: "bottom", align: "center" }}
+                renderItem={(feedback) => (
                   <List.Item
                     style={{
-                      padding: "12px",
-                      cursor: "pointer",
-                      marginBottom: 3,
-                      background: "#fff",
-                      borderRadius: "4px",
-                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                      padding: "16px",
+                      borderBottom: "1px solid #f0f0f0",
+                      transition: "background 0.3s",
                     }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "#fafafa")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "#fff")}
                   >
                     <List.Item.Meta
                       avatar={
-                        <Avatar style={{ backgroundColor: "#87d068" }}>
-                          {email.senderName?.charAt(0).toUpperCase() || "U"}
+                        <Avatar
+                          style={{
+                            backgroundColor: "#1677ff",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {feedback.senderName?.charAt(0).toUpperCase() || "U"}
                         </Avatar>
                       }
                       title={
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <span>{email.senderName || "New User"}</span>
-                          <Space style={{ textAlign: "right" }}>
-                            <span style={{ fontSize: "12px", color: "gray" }}>
-                              {dayjs(email.createdAt).format("MMM D, YYYY h:mm A")}
-                              {email.status === 1 && <Badge style={{ marginLeft: 5 }} status="success" />}
-                              <br />
-                              {email.status === 1 && (
-                                <Tooltip
-                                  title="Click to Mark as Read"
-                                  onClick={() => handleRead(email, 2, 'new')}
-                                  key={email.id}>Mark as Read
-                                </Tooltip>
-                              )}
-                              {email.status === 1 ? "" : (
-                                <Tooltip
-                                  title="Click to Delete"
-                                  onClick={() => handleRead(email, 3, 'all')}
-                                  key={email.id}>Delete
-                                </Tooltip>
-                              )}
-                            </span>
-                          </Space>
-
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                          <Text strong style={{ fontSize: 16 }}>
+                            {feedback.senderName || "Anonymous"}
+                          </Text>
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            {dayjs(feedback.createdAt).format("MMM D, YYYY h:mm A")}
+                          </Text>
                         </div>
                       }
                       description={
-                        <ParagraphList text={email.message} maxLength={100} />
+                        <ParagraphList text={feedback.message} maxLength={200} />
                       }
                     />
-
                   </List.Item>
                 )}
               />
             )}
-          </Content>
-        </Layout>
+          </Card>
+        </Content>
       </Layout>
     </App>
   );
