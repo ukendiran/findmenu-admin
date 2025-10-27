@@ -1,0 +1,70 @@
+name: Deploy React App
+
+on:
+  push:
+    branches:
+      - main   # triggers test deploy
+      - v1      # triggers live deploy
+
+jobs:
+  deploy-test:
+    if: github.ref == 'refs/heads/v1'
+    runs-on: ubuntu-latest
+    name: Deploy to Test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Use .env.test
+        run: cp .env.test .env
+
+      - name: Build with test env
+        run: npm run build -- --mode test
+
+      - name: Deploy to Test Server
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /admin/        # Change based on subdomain (e.g., /public_html/app/, /public_html/admin/)
+          local-dir: dist/
+
+  deploy-live:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    name: Deploy to Live
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Use .env.production
+        run: cp .env.production .env
+
+      - name: Build with production env
+        run: npm run build -- --mode production
+
+      - name: Deploy to Live Server
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME_LIVE }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /admin/        # Change based on subdomain (e.g., /public_html/app/, /public_html/admin/)
+          local-dir: dist/

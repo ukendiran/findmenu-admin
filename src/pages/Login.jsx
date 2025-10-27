@@ -31,7 +31,6 @@ const Login = () => {
             business: result.data.business,
             token: result.data.token,
           };
-          console.log(data);
           dispatch(login(data));
           navigate("/dashboard");
         } else {
