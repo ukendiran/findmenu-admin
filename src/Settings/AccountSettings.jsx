@@ -91,10 +91,6 @@ export default function AccountSettings({ businessId, userId }) {
     }
   };
 
-
-
-
-
   return (
     <App>
       {contextHolder}

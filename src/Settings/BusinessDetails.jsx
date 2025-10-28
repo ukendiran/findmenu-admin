@@ -198,6 +198,14 @@ export default function BusinessDetails({ businessId }) {
               </Select>
             </Form.Item>
 
+             <Form.Item
+              label="FSSAI"
+              name="license_no"
+              rules={[{ required: true, message: "FSSAI License No is required" }]}
+            >
+              <Input />
+            </Form.Item>
+
             
           </Col>
 
