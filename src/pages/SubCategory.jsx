@@ -21,6 +21,7 @@ import { useSelector } from "react-redux";
 import apiService from "../services/apiService";
 
 import { SearchOutlined, UploadOutlined } from "@ant-design/icons";
+import { checkImageNull, genarateIndexKey } from "../../../findmenu-manage/src/utils";
 
 
 const { Title } = Typography;
@@ -75,7 +76,7 @@ const SubCategory = () => {
       if (response.data?.data) {
         const dataWithKeys = response.data.data.map((item, index) => ({
           ...item,
-          key: item.id || index, // Use `id` if available, otherwise fallback to index
+          key: genarateIndexKey(item.name, index)
         }));
         setData(dataWithKeys);
         setFilteredData(dataWithKeys);
@@ -210,7 +211,7 @@ const SubCategory = () => {
       width: "200",
       render: (image) => (
         <Image
-          src={`${apiService.apiUrl}/${image}`}
+           src={checkImageNull(image)}
           alt="item"
           style={{
             width: 150,
