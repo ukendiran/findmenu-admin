@@ -19,6 +19,7 @@ import {
 import { useSelector } from "react-redux";
 import apiService from "../services/apiService";
 import { SearchOutlined, UploadOutlined } from "@ant-design/icons";
+import { checkImageNull, genarateIndexKey } from "../../../findmenu-manage/src/utils";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -84,7 +85,7 @@ const Items = () => {
       width: "200",
       render: (image) => (
         <Image
-          src={`${apiService.apiUrl}/${image}`}
+          src={checkImageNull(image)}
           alt="item"
           style={{
             width: 150,
@@ -179,7 +180,7 @@ const Items = () => {
       if (response.data?.data) {
         const dataWithKeys = response.data.data.map((item, index) => ({
           ...item,
-          key: item.id || index,
+          key: genarateIndexKey(item.name, index)
         }));
 
 
@@ -253,8 +254,8 @@ const Items = () => {
       formData.append('name', values.name);
       formData.append('status', status === 1 ? 1 : 2);
       formData.append('isAvailable', isAvailable === 1 ? 1 : 2);
-      formData.append('price', values.price== undefined ? "" : values.price);
-      formData.append('description', values.description== undefined ? "" : values.description);
+      formData.append('price', values.price == undefined ? "" : values.price);
+      formData.append('description', values.description == undefined ? "" : values.description);
       formData.append('categoryId', values.categoryId);
       formData.append('subCategoryId', values.subCategoryId);
       formData.append('businessId', user.businessId);
@@ -270,7 +271,7 @@ const Items = () => {
           return;
         }
         formData.append('image', imageFile.originFileObj);
-      } 
+      }
 
       if (currentRecord?.id) {
         formData.append('_method', 'PUT');
