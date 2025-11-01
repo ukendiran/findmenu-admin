@@ -21,7 +21,7 @@ import { useSelector } from "react-redux";
 import apiService from "../services/apiService";
 
 import { SearchOutlined, UploadOutlined } from "@ant-design/icons";
-import { checkImageNull, genarateIndexKey } from "../../../findmenu-manage/src/utils";
+import { checkImageNull, genarateIndexKey } from "../utils/index";
 
 
 const { Title } = Typography;
