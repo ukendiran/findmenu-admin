@@ -1,14 +1,13 @@
 import { useState, useRef } from "react";
 import PropTypes from "prop-types";
 import { Input, QRCode, Button, Row, Col, Space } from "antd";
-import apiService from "../services/apiService";
 import { HexColorPicker } from "react-colorful";
 
 // Using default parameter instead of defaultProps
-const QRCodePage = ({ businessCode }) => {
+const QRCodePage = ({ url, businessCode }) => {
   const [qrColor, setQrColor] = useState("#000000");
   const qrCodeRef = useRef(null);
-  const url = `${apiService.appUrl}/${businessCode}`;
+  // const url = `${apiService.appUrl}/${businessCode}`;
 
   const handleDownloadQRCode = () => {
     const qrCanvas = qrCodeRef.current?.querySelector("canvas");
@@ -56,6 +55,7 @@ const QRCodePage = ({ businessCode }) => {
   );
 };
 QRCodePage.propTypes = {
+  url: PropTypes.string,
   businessCode: PropTypes.string,
 };
 

@@ -36,25 +36,34 @@ export default function BusinessDetails({ businessId }) {
     return `${apiService.apiUrl}/${file.name || file.url}`;
   };
 
-  useEffect(() => {
-    const fetchBusinessData = async () => {
-      try {
-        const result = await apiService.get(`/business/${businessId}`);
-        const data = result.data.data;
-        setBusinessData(data);
-        form.setFieldsValue(data);
-        setImageFile({ name: data.image, url: data.image });
-        setBannerImageFile({ name: data.bannerImage, url: data.bannerImage });
-      } catch (e) {
-        console.error("Error fetching business data:", e);
-        showNotification('error', 'Error', 'Failed to fetch business data');
-      } finally {
-        setLoading(false);
-      }
-    };
+ useEffect(() => {
+  const fetchBusinessData = async () => {
+    try {
+      const result = await apiService.get(`/business/${businessId}`);
+      const data = result.data.data;
+      setBusinessData(data);
 
-    fetchBusinessData();
-  }, [businessId]);
+      // Set values only after form is mounted
+      setTimeout(() => {
+        form.setFieldsValue({
+          ...data,
+          group: data.group?.name || 'N/A'
+        });
+      }, 0);
+
+      setImageFile(data.image ? { name: data.image, url: data.image } : null);
+      setBannerImageFile(data.bannerImage ? { name: data.bannerImage, url: data.bannerImage } : null);
+    } catch (e) {
+      console.error("Error fetching business data:", e);
+      showNotification('error', 'Error', 'Failed to fetch business data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchBusinessData();
+}, [businessId]);
+
 
   // Notification helper to avoid calling in render
   const showNotification = (type, message, description) => {
@@ -155,6 +164,28 @@ export default function BusinessDetails({ businessId }) {
               <Input disabled />
             </Form.Item>
 
+            <Form.Item label="Username/Email" name="email">
+              <Input disabled />
+            </Form.Item>
+
+            {businessData.businessType !== null && (
+              <Form.Item label="Business Type" name="businessType">
+                <Input disabled />
+              </Form.Item>
+            )}
+
+            {businessData.businessType == 'restaurant' && (
+              <Form.Item label="FSSAI License No" name="license_no">
+                <Input />
+              </Form.Item>
+            )}
+
+            {businessData.group_id !== null && (
+              <Form.Item label="Business Group" name="group">
+                <Input disabled />
+              </Form.Item>
+            )}
+
             <Form.Item
               label="Business Name"
               name="name"
@@ -197,16 +228,6 @@ export default function BusinessDetails({ businessId }) {
                 <Select.Option value="dollar">Dollar ($)</Select.Option>
               </Select>
             </Form.Item>
-
-             <Form.Item
-              label="FSSAI"
-              name="license_no"
-              rules={[{ required: true, message: "FSSAI License No is required" }]}
-            >
-              <Input />
-            </Form.Item>
-
-            
           </Col>
 
           {/* Middle Column - Logo */}

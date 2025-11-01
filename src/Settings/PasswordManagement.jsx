@@ -55,6 +55,9 @@ export default function PasswordManagement({ business }) {
             <Form form={form} layout="vertical" onFinish={handleSubmit}>
                 <Row gutter={[16, 16]}>
                     <Col xs={24} sm={24} md={12} lg={12}>
+                        <Form.Item label="Username/Email" name="email" initialValue={business.email}>
+                            <Input disabled />
+                        </Form.Item>
                         <Form.Item
                             label="Old Password"
                             name="old_password"
