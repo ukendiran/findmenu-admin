@@ -12,8 +12,7 @@ const Settings = () => {
   const user = useSelector((state) => state.auth.user);
   const business = useSelector((state) => state.auth.business);
   const businessUrl = `${apiService.appUrl}/${business.code}`;
-  const groupUrl = `${apiService.appUrl}/group/${business.group.code}`;
-
+  const groupUrl = `${apiService.appUrl}/group/${business.group?.code || undefined}`;
 
   if (!user) {
     return <p>Loading user data...</p>; // ✅ Prevents rendering before `user` is available
