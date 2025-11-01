@@ -12,3 +12,4 @@ export function checkImageNull(image) {
     if (image == null) return `${apiService.apiUrl}/images/no-image.png`;
     return `${apiService.apiUrl}/${image}`;
 }
+
