@@ -75,7 +75,7 @@ export default function BusinessDetails({ businessId }) {
     };
 
     fetchBusinessData();
-  }, [businessId, form, showNotification]);
+  }, [businessId, form]);
 
   const showNotification = useCallback((type, message, description) => {
     api[type]({ message, description });

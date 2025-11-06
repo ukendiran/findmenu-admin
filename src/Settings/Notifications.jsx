@@ -20,7 +20,7 @@ export default function Notifications() {
 
   useEffect(() => {
     getData();
-  }, [getData]);
+  }, []);
 
   useEffect(() => {
     if (businessConfig) {

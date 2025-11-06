@@ -42,7 +42,7 @@ const MainCategory = () => {
     if (user?.businessId) {
       fetchCategories(user.businessId);
     }
-  }, [user, fetchCategories]);
+  }, [user]);
 
   const fetchCategories = useCallback(async (businessId) => {
     try {
