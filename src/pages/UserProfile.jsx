@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Form, Input, Button, Upload, Avatar, notification } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import apiService from "../services/apiService";
@@ -15,9 +15,9 @@ const ProfilePage = () => {
 
   useEffect(() => {
     getUserData();
-  }, []);
+  }, [getUserData]);
 
-  const getUserData = async () => {
+  const getUserData = useCallback(async () => {
     try {
       const response = await apiService.get(`/users/${user.id}`);
       if (response.data) {
@@ -27,7 +27,7 @@ const ProfilePage = () => {
     } catch (error) {
       console.error("Error fetching categories:", error);
     }
-  };
+  }, [user.id]);
 
   const onFinish = (values) => {
     const profileData = {

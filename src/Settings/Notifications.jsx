@@ -1,5 +1,5 @@
 import { App, Button, Col, Form, Input, message, notification, Row, Space, Switch } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 import apiService from "../services/apiService";
@@ -20,7 +20,7 @@ export default function Notifications() {
 
   useEffect(() => {
     getData();
-  }, []);
+  }, [getData]);
 
   useEffect(() => {
     if (businessConfig) {
@@ -43,7 +43,7 @@ export default function Notifications() {
     }
   }, [businessConfig]);
 
-  const getData = async () => {
+  const getData = useCallback(async () => {
     try {
       const response = await apiService.get(`/config/${config.businessId}`);
       setBusinessConfig(response.data.data);
@@ -53,7 +53,7 @@ export default function Notifications() {
       console.error(error);
       setLoading(false);
     }
-  };
+  }, [config.businessId]);
 
   const handleChange = (checked, field) => {
     setHasChanges(true);

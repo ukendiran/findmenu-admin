@@ -3,7 +3,6 @@ import {
   UserOutlined,
   SettingOutlined,
   DashboardOutlined,
-  TeamOutlined,
   MessageOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, theme, notification, App, Spin } from "antd";
@@ -39,7 +38,7 @@ const AdminLayout = () => {
   useEffect(() => {
     setBusinessData(business || []);
     setSelectedKeys([location.pathname]);
-  }, []);
+  }, [business, location.pathname]);
 
 
   if (user === undefined) {

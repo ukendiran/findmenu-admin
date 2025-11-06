@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Table,
   Typography,
@@ -42,9 +42,9 @@ const MainCategory = () => {
     if (user?.businessId) {
       fetchCategories(user.businessId);
     }
-  }, [user]);
+  }, [user, fetchCategories]);
 
-  const fetchCategories = async (businessId) => {
+  const fetchCategories = useCallback(async (businessId) => {
     try {
       setLoading(true);
       const response = await apiService.get(`/main-categories`, { businessId });
@@ -66,7 +66,7 @@ const MainCategory = () => {
       setLoading(false);
 
     }
-  };
+  }, [notificationApi]);
 
   const showDrawer = (record = null) => {
     console.log("showDrawer", record);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import PropTypes from "prop-types";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -50,9 +50,26 @@ const DraggableItem = ({ item, index, moveItem }) => {
 };
 
 const DraggableMenu = ({ businessId, controller }) => {
-  const [loading, setLoading] = useState(true);
   const [mainCategory, setMainCategory] = useState([]);
   const [notificationApi, contextHolder] = notification.useNotification();
+
+  const getMainCategory = useCallback(async () => {
+    try {
+      const response = await apiService.get(`/${controller}`, {
+        businessId: businessId,
+      });
+
+      if (response.data) {
+        setMainCategory(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  }, [businessId, controller]);
+
+  useEffect(() => {
+    getMainCategory();
+  }, [getMainCategory]);
 
   const moveItem = (fromIndex, toIndex) => {
     const updatedItems = [...mainCategory];
@@ -87,25 +104,6 @@ const DraggableMenu = ({ businessId, controller }) => {
         });
       } else {
         notificationApi.error({ message: "Error", description: "Error on Update", placement: "bottomRight" });
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    }
-  };
-
-  useEffect(() => {
-    getMainCategory();
-  }, [loading]);
-
-  const getMainCategory = async () => {
-    try {
-      const response = await apiService.get(`/${controller}`, {
-        businessId: businessId,
-      });
-
-      if (response.data) {
-        setMainCategory(response.data.data);
-        setLoading(false);
       }
     } catch (error) {
       console.error("Error fetching categories:", error);

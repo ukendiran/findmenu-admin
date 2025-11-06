@@ -1,5 +1,5 @@
 import { Layout, Row, Col, Card } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import apiService from "../services/apiService";
 import { useSelector } from "react-redux";
 
@@ -9,17 +9,17 @@ const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState([]);
   const user = useSelector((state) => state.auth.user);
 
-  useEffect(() => {
-    getDashboardData();
-  }, []);
-
-  const getDashboardData = async () => {
+  const getDashboardData = useCallback(async () => {
     setDashboardData([]);
     const response = await apiService.get(`dashboard/counts`, {
       businessId: user.businessId,
     });
     setDashboardData(response.data.data);
-  };
+  }, [user.businessId]);
+
+  useEffect(() => {
+    getDashboardData();
+  }, [getDashboardData]);
 
   return (
     <div>

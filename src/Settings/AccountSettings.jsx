@@ -1,8 +1,8 @@
-import { Button, Col, Form, notification, Row, Spin, Input, Upload, Image, App } from "antd";
+import { Button, Col, Form, notification, Row, Input, Upload, Image, App, Spin } from "antd";
 
 
 import apiService from "../../services/apiService";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { PropTypes } from "prop-types";
 import { UploadOutlined } from "@ant-design/icons";
 
@@ -16,11 +16,11 @@ export default function AccountSettings({ businessId, userId }) {
   const [notificationApi, contextHolder] = notification.useNotification();
   useEffect(() => {
     getUserData();
-  }, [businessId]);
+  }, [businessId, getUserData]);
 
 
 
-  const getUserData = async () => {
+  const getUserData = useCallback(async () => {
     try {
       const result = await apiService.get(`/users/${userId}`);
       const response = result.data.data;
@@ -33,7 +33,7 @@ export default function AccountSettings({ businessId, userId }) {
     } catch (error) {
       console.error("Error fetching categories:", error);
     }
-  };
+  }, [userId]);
 
 
   const handleImageUpload = (info) => {

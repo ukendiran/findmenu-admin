@@ -13,7 +13,7 @@ import {
   Col,
 } from "antd";
 import { MessageOutlined, SearchOutlined } from "@ant-design/icons";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import apiService from "../services/apiService";
 import { useSelector } from "react-redux";
 import dayjs from "dayjs";
@@ -31,15 +31,7 @@ const Feedback = () => {
 
   const [notificationApi, contextHolder] = notification.useNotification();
 
-  useEffect(() => {
-    fetchFeedback();
-  }, []);
-
-  useEffect(() => {
-    handleSearch();
-  }, [search, data]);
-
-  const fetchFeedback = async () => {
+  const fetchFeedback = useCallback(async () => {
     setLoading(true);
     try {
       const response = await apiService.get(`/feedbacks`, {
@@ -63,9 +55,9 @@ const Feedback = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.businessId, notificationApi]);
 
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
     if (!search.trim()) {
       setFilteredData(data);
       return;
@@ -78,7 +70,15 @@ const Feedback = () => {
         item.message?.toLowerCase().includes(term)
     );
     setFilteredData(filtered);
-  };
+  }, [search, data]);
+
+  useEffect(() => {
+    fetchFeedback();
+  }, [fetchFeedback]);
+
+  useEffect(() => {
+    handleSearch();
+  }, [search, data, handleSearch]);
 
   return (
     <App>

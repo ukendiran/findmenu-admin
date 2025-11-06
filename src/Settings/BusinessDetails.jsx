@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import PropTypes from "prop-types";
 import {
   Button,
@@ -15,7 +15,6 @@ import {
   Select,
   Card,
   Typography,
-  Divider,
   Avatar,
   Tag
 } from "antd";
@@ -76,11 +75,11 @@ export default function BusinessDetails({ businessId }) {
     };
 
     fetchBusinessData();
-  }, [businessId]);
+  }, [businessId, form, showNotification]);
 
-  const showNotification = (type, message, description) => {
+  const showNotification = useCallback((type, message, description) => {
     api[type]({ message, description });
-  };
+  }, [api]);
 
   const handleImageUpload = (info, setter) => {
     const file = info.file;
@@ -540,7 +539,7 @@ export default function BusinessDetails({ businessId }) {
       </Form>
 
       {/* Add some custom styles */}
-      <style jsx>{`
+      <style>{`
         :global(.custom-card) {
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
           border: 1px solid #f0f0f0;
