@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import {
-  Table,
   Typography,
   Space,
   Button,
@@ -14,13 +13,19 @@ import {
   Modal,
   App,
   Upload,
+  Row,
+  Col,
+  Card,
+  Spin,
+  Empty,
+  Tag,
 } from "antd";
 
 
 import { useSelector } from "react-redux";
 import apiService from "../services/apiService";
 
-import { SearchOutlined, UploadOutlined, DeleteOutlined } from "@ant-design/icons";
+import { SearchOutlined, UploadOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { checkImageNull, genarateIndexKey } from "../utils/index";
 
 
@@ -28,7 +33,7 @@ const { Title } = Typography;
 const { Option } = Select;
 
 const SubCategory = () => {
-  const [notificationApi, contextHolder] = notification.useNotification();
+  const { notification: notificationApi } = App.useApp();
   const user = useSelector((state) => state.auth.user);
   const business = useSelector((state) => state.auth.business);
   const [data, setData] = useState([]);
@@ -193,75 +198,6 @@ const SubCategory = () => {
     return false;
   };
 
-  const columns = [
-    {
-      title: "Sub Category",
-      dataIndex: "name",
-      key: "name",
-      width: "200px",
-      onFilter: (value, record) => record.name.includes(value),
-      sorter: (a, b) => a.name.localeCompare(b.name),
-    },
-    {
-      title: "Category",
-      dataIndex: ["category", "name"],
-      key: "category.name",
-      sorter: (a, b) => (a.category?.name || "").localeCompare(b.category?.name || ""),
-    },
-    {
-      title: "Image",
-      dataIndex: "image",
-      key: "image",
-      width: "200",
-      render: (image) => (
-        <Image
-           src={checkImageNull(image)}
-          alt="item"
-          style={{
-            width: 150,
-            height: 100,
-            objectFit: "cover",
-            borderRadius: "4px",
-          }}
-        />
-      ),
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status, record) => (
-        <Switch checkedChildren="On" unCheckedChildren="Off" checked={status === 1} onChange={(checked) => handleStatus(checked, record)} />
-      ),
-    },
-    {
-      title: "Availability",
-      dataIndex: "isAvailable",
-      key: "isAvailable",
-      render: (isAvailable, record) => (
-        <Switch checkedChildren="On" unCheckedChildren="Off" checked={isAvailable === 1} onChange={(checked) => handleAvailablity(checked, record)} />
-      ),
-    },
-    {
-      title: "Actions",
-      key: "actions",
-      render: (_, record) => (
-        <Space>
-          <Button size="small" onClick={() => showDrawer(record)}>
-            Edit
-          </Button>
-          <Button
-            size="small"
-            type="primary"
-            danger
-            onClick={() => handleDelete(record)}
-          >
-            Delete
-          </Button>
-        </Space>
-      ),
-    },
-  ];
 
   const handleStatus = async (checked, record) => {
     try {
@@ -364,8 +300,7 @@ const SubCategory = () => {
 
 
   return (
-    <App>
-      {contextHolder}
+    <>
       <Title level={2}>Sub Category List</Title>
       <div
         style={{
@@ -386,13 +321,116 @@ const SubCategory = () => {
         </Button>
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={filteredData}
-        scroll={{ x: "max-content", y: "60vh" }} // Horizontal and vertical scroll
-        pagination={false} // Display all items on one page
-        loading={loading}
-      />
+      {loading ? (
+        <div style={{ textAlign: "center", padding: "60px 0" }}>
+          <Spin size="large" />
+        </div>
+      ) : filteredData.length === 0 ? (
+        <Empty description="No subcategories found" style={{ padding: "60px 0" }} />
+      ) : (
+        <Row gutter={[16, 16]}>
+          {filteredData.map((record) => (
+            <Col xs={24} sm={12} md={8} lg={6} xl={6} key={record.id}>
+              <Card
+                hoverable
+                style={{
+                  borderRadius: 8,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+                cover={
+                  <div
+                    style={{
+                      height: 200,
+                      overflow: "hidden",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "#f5f5f5",
+                    }}
+                  >
+                    <Image
+                      src={checkImageNull(record.image)}
+                      alt={record.name}
+                      preview={false}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                      fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
+                    />
+                  </div>
+                }
+                actions={[
+                  <Button
+                    key="edit"
+                    type="text"
+                    icon={<EditOutlined />}
+                    onClick={() => showDrawer(record)}
+                  >
+                    Edit
+                  </Button>,
+                  <Button
+                    key="delete"
+                    type="text"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => handleDelete(record)}
+                  >
+                    Delete
+                  </Button>,
+                ]}
+              >
+                <Card.Meta
+                  title={
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span style={{ fontSize: 16, fontWeight: 600 }}>{record.name}</span>
+                    </div>
+                  }
+                  description={
+                    <Space direction="vertical" size="small" style={{ width: "100%", marginTop: 12 }}>
+                      <div style={{ fontSize: 12, color: "#666", marginBottom: 8 }}>
+                        <strong>Category:</strong> {record.category?.name || "N/A"}
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: 12, color: "#666" }}>Status:</span>
+                        <Switch
+                          checkedChildren="On"
+                          unCheckedChildren="Off"
+                          checked={record.status === 1}
+                          onChange={(checked) => handleStatus(checked, record)}
+                          size="small"
+                        />
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: 12, color: "#666" }}>Availability:</span>
+                        <Switch
+                          checkedChildren="On"
+                          unCheckedChildren="Off"
+                          checked={record.isAvailable === 1}
+                          onChange={(checked) => handleAvailablity(checked, record)}
+                          size="small"
+                        />
+                      </div>
+                      <div style={{ marginTop: 4 }}>
+                        <Tag color={record.status === 1 ? "success" : "default"}>
+                          {record.status === 1 ? "Active" : "Inactive"}
+                        </Tag>
+                        <Tag color={record.isAvailable === 1 ? "blue" : "default"}>
+                          {record.isAvailable === 1 ? "Available" : "Unavailable"}
+                        </Tag>
+                      </div>
+                    </Space>
+                  }
+                />
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      )}
 
       <Drawer
         title={currentRecord ? "Edit Sub Category" : "Add Sub Category"}
@@ -516,7 +554,7 @@ const SubCategory = () => {
         <p>This action cannot be undone.</p>
       </Modal>
 
-    </App>
+    </>
   );
 };
 

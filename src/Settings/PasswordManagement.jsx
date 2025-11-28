@@ -6,14 +6,14 @@ import {
     Form,
     Row,
     Input,
-    notification,
+    App,
 } from "antd";
 
 import apiService from "../services/apiService";
 import { extractErrorMessages } from "../utils/errorHelper";
 
 export default function PasswordManagement({ business }) {
-    const [notificationApi, contextHolder] = notification.useNotification();
+    const { notification: notificationApi } = App.useApp();
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
 
@@ -50,7 +50,6 @@ export default function PasswordManagement({ business }) {
 
     return (
         <>
-            {contextHolder}
             <Form form={form} layout="vertical" onFinish={handleSubmit}>
                 <Row gutter={[16, 16]}>
                     <Col xs={24} sm={24} md={12} lg={12}>

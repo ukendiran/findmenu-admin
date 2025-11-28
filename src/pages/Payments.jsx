@@ -39,7 +39,7 @@ const { Option } = Select;
 
 
 export const Payments = () => {
-  const [notificationApi, contextHolder] = notification.useNotification();
+  const { notification: notificationApi } = App.useApp();
   const [loading, setLoading] = useState(true);
   const [paymentHistory, setPaymentHistory] = useState([]);
   const [currentPlan, setCurrentPlan] = useState(null);
@@ -189,8 +189,7 @@ export const Payments = () => {
 
 
   return (
-    <App>
-      {contextHolder}
+    <>
       <div style={{ padding: '24px' }}>
         <Title level={2} style={{ marginBottom: '32px' }}>
           <DollarOutlined /> Payments & Billing
@@ -352,6 +351,6 @@ export const Payments = () => {
           <RenewSubscription />
         </div>
       </div>
-    </App>
+    </>
   );
 };

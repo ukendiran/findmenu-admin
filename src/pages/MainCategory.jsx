@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  Table,
   Typography,
   Space,
   Button,
@@ -13,17 +12,24 @@ import {
   Modal,
   Upload,
   App,
+  Row,
+  Col,
+  Card,
+  Spin,
+  Empty,
+  Tag,
 } from "antd";
 import { useSelector } from "react-redux";
-import { SearchOutlined, UploadOutlined } from "@ant-design/icons";
+import { SearchOutlined, UploadOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import apiService from "../services/apiService";
 import { checkImageNull } from "../utils/index";
+import { extractErrorMessages } from "../utils/errorHelper";
 
 const { Title } = Typography;
 
 
 const MainCategory = () => {
-  const [notificationApi, contextHolder] = notification.useNotification();
+  const { notification: notificationApi } = App.useApp();
   const [form] = Form.useForm();
   const user = useSelector((state) => state.auth.user);
   const [data, setData] = useState([]);
@@ -208,50 +214,6 @@ const MainCategory = () => {
     }
   };
 
-  const columns = [
-    {
-      title: "Category Name",
-      dataIndex: "name",
-      key: "name",
-      onFilter: (value, record) => record.name.includes(value),
-      sorter: (a, b) => a.name.localeCompare(b.name),
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status, record) => (
-        <Switch checkedChildren="On" unCheckedChildren="Off" checked={status === 1} onChange={(checked) => handleStatus(checked, record)} />
-      ),
-    },
-    {
-      title: "Availability",
-      dataIndex: "isAvailable",
-      key: "isAvailable",
-      render: (isAvailable, record) => (
-        <Switch checkedChildren="On" unCheckedChildren="Off" checked={isAvailable === 1} onChange={(checked) => handleAvailablity(checked, record)} />
-      ),
-    },
-    {
-      title: "Actions",
-      key: "actions",
-      render: (_, record) => (
-        <Space>
-          <Button size="small" onClick={() => showDrawer(record)}>
-            Edit
-          </Button>
-          <Button
-            size="small"
-            type="primary"
-            danger
-            onClick={() => handleDelete(record)}
-          >
-            Delete
-          </Button>
-        </Space>
-      ),
-    },
-  ];
 
   // Search functionality
   const handleSearch = (value) => {
@@ -297,8 +259,7 @@ const MainCategory = () => {
 
 
   return (
-    <App>
-      {contextHolder}
+    <>
       <Title level={2}>Main Category List</Title>
       <div
         style={{
@@ -319,12 +280,113 @@ const MainCategory = () => {
         </Button>
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={filteredData}
-        scroll={{ x: "max-content", y: "60vh" }}
-        loading={loading}
-      />
+      {loading ? (
+        <div style={{ textAlign: "center", padding: "60px 0" }}>
+          <Spin size="large" />
+        </div>
+      ) : filteredData.length === 0 ? (
+        <Empty description="No categories found" style={{ padding: "60px 0" }} />
+      ) : (
+        <Row gutter={[16, 16]}>
+          {filteredData.map((record) => (
+            <Col xs={24} sm={12} md={8} lg={6} xl={6} key={record.id}>
+              <Card
+                hoverable
+                style={{
+                  borderRadius: 8,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+                cover={
+                  <div
+                    style={{
+                      height: 200,
+                      overflow: "hidden",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "#f5f5f5",
+                    }}
+                  >
+                    <Image
+                      src={checkImageNull(record.image)}
+                      alt={record.name}
+                      preview={false}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                      fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
+                    />
+                  </div>
+                }
+                actions={[
+                  <Button
+                    key="edit"
+                    type="text"
+                    icon={<EditOutlined />}
+                    onClick={() => showDrawer(record)}
+                  >
+                    Edit
+                  </Button>,
+                  <Button
+                    key="delete"
+                    type="text"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => handleDelete(record)}
+                  >
+                    Delete
+                  </Button>,
+                ]}
+              >
+                <Card.Meta
+                  title={
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span style={{ fontSize: 16, fontWeight: 600 }}>{record.name}</span>
+                    </div>
+                  }
+                  description={
+                    <Space direction="vertical" size="small" style={{ width: "100%", marginTop: 12 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: 12, color: "#666" }}>Status:</span>
+                        <Switch
+                          checkedChildren="On"
+                          unCheckedChildren="Off"
+                          checked={record.status === 1}
+                          onChange={(checked) => handleStatus(checked, record)}
+                          size="small"
+                        />
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: 12, color: "#666" }}>Availability:</span>
+                        <Switch
+                          checkedChildren="On"
+                          unCheckedChildren="Off"
+                          checked={record.isAvailable === 1}
+                          onChange={(checked) => handleAvailablity(checked, record)}
+                          size="small"
+                        />
+                      </div>
+                      <div style={{ marginTop: 4 }}>
+                        <Tag color={record.status === 1 ? "success" : "default"}>
+                          {record.status === 1 ? "Active" : "Inactive"}
+                        </Tag>
+                        <Tag color={record.isAvailable === 1 ? "blue" : "default"}>
+                          {record.isAvailable === 1 ? "Available" : "Unavailable"}
+                        </Tag>
+                      </div>
+                    </Space>
+                  }
+                />
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      )}
 
       <Drawer
         title={currentRecord ? "Edit Category" : "Add Category"}
@@ -408,7 +470,7 @@ const MainCategory = () => {
         <p>Are you sure you want to delete this category?</p>
       </Modal>
 
-    </App>
+    </>
   );
 };
 

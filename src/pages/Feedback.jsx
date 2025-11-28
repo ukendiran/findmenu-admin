@@ -29,7 +29,7 @@ const Feedback = () => {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
 
-  const [notificationApi, contextHolder] = notification.useNotification();
+  const { notification: notificationApi } = App.useApp();
 
   const fetchFeedback = useCallback(async () => {
     setLoading(true);
@@ -81,8 +81,7 @@ const Feedback = () => {
   }, [search, data, handleSearch]);
 
   return (
-    <App>
-      {contextHolder}
+    <>
       <Layout style={{ height: "100vh", background: "#f5f7fa" }}>
         {/* Header */}
         <Header
@@ -176,7 +175,7 @@ const Feedback = () => {
           </Card>
         </Content>
       </Layout>
-    </App>
+    </>
   );
 };
 

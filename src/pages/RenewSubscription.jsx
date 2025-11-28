@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 const { Title, Text } = Typography;
 
 export const RenewSubscription = () => {
-    const [notificationApi, contextHolder] = notification.useNotification();
+    const { notification: notificationApi } = App.useApp();
     const [plans, setPlans] = useState([]);
     const [loading, setLoading] = useState(true);
     const [subscribing, setSubscribing] = useState(false);
@@ -100,8 +100,7 @@ export const RenewSubscription = () => {
     }
 
     return (
-        <App>
-            {contextHolder}
+        <>
             <div style={{ padding: '24px' }}>
                 <Title level={2} style={{ textAlign: 'center', marginBottom: '32px' }}>
                     Renew Your Subscription
@@ -181,6 +180,6 @@ export const RenewSubscription = () => {
                     </List>
                 </Card>
             </div>
-        </App>
+        </>
     );
 };

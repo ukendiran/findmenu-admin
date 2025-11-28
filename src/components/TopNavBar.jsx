@@ -10,8 +10,7 @@ import {
   Switch,
   Typography,
     App,
-    theme,
-    notification
+    theme
 } from "antd";
 import {
   SettingOutlined,
@@ -37,17 +36,16 @@ export default function TopNavBar({
   configData,
   handleCollapsed,
   handleGoogleReview,
+  handleLogout,
   collapsed,
 }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { token: { colorBgContainer } } = theme.useToken();
-  const { notification } = App.useApp();
+  const { notification: notificationApi } = App.useApp();
 
   // ✅ Sidebar toggle state
   const [isCollapsed, setIsCollapsed] = useState(collapsed);
-
-  const [notificationApi, contextHolder] = notification.useNotification();
 
   // ✅ Toggle sidebar function
   const toggleSidebar = () => {
@@ -97,21 +95,21 @@ export default function TopNavBar({
     ],
     onClick: ({ key }) => {
       if (key === "logout") {
-
-        notificationApi.success(
-          {
+        // Use the handleLogout prop from AdminLayout to avoid duplicate notifications
+        if (handleLogout) {
+          handleLogout();
+        } else {
+          // Fallback if handleLogout is not provided
+          notificationApi.success({
             message: "Logout Success",
             description: "Logged out successfully.",
             placement: "topRight"
-          }
-        );
-
-        // Wait a bit before navigating to allow notification to show
-        setTimeout(() => {
-          dispatch(logout(userData));
-          navigate("/login");
-        }, 1000);
-
+          });
+          setTimeout(() => {
+            dispatch(logout(userData));
+            navigate("/login");
+          }, 1000);
+        }
       } else {
         navigate(`/${key}`);
       }
@@ -120,8 +118,7 @@ export default function TopNavBar({
 
 
   return (
-    <App>
-      {contextHolder}
+    <>
       <Header
         style={{
           padding: 0,
@@ -156,10 +153,10 @@ export default function TopNavBar({
               <Avatar icon={<UserOutlined />} />
               <span>{userData.name}</span>
             </Space>
-          </Dropdown>
-        </Space>
-      </Header>
-    </App>
+        </Dropdown>
+      </Space>
+    </Header>
+    </>
   );
 }
 
@@ -170,4 +167,5 @@ TopNavBar.propTypes = {
   collapsed: PropTypes.bool,
   handleCollapsed: PropTypes.func,
   handleGoogleReview: PropTypes.func,
+  handleLogout: PropTypes.func,
 };

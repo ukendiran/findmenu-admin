@@ -33,7 +33,7 @@ const AdminLayout = () => {
     token: { borderRadiusLG, darkHeaderBg },
   } = theme.useToken();
 
-  const [notificationApi, contextHolder] = notification.useNotification();
+  const { notification: notificationApi } = App.useApp();
 
   useEffect(() => {
     setBusinessData(business || []);
@@ -88,7 +88,7 @@ const AdminLayout = () => {
     },    
     { key: "/feedback", icon: <MessageOutlined />, label: "Feedback", path: "/feedback" },
     { key: "/settings", icon: <SettingOutlined />, label: "Settings", path: "/settings" },
-    { key: "logout", icon: <SettingOutlined />, label: "Logout", onClick: handleLogout },
+    { key: "logout", icon: <SettingOutlined />, label: "Logout" },
   ];
 
   const handleMenuClick = ({ key }) => {
@@ -105,8 +105,7 @@ const AdminLayout = () => {
   };
 
   return (
-    <App>
-      {contextHolder}
+    <>
       {user && (
         <Layout style={{ minHeight: "100vh" }}>
           <Sider
@@ -162,7 +161,7 @@ const AdminLayout = () => {
           </Layout>
         </Layout>
       )}
-    </App>
+    </>
   );
 };
 

@@ -10,7 +10,7 @@ const { Title } = Typography;
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [notificationApi, contextHolder] = notification.useNotification();
+  const { notification: notificationApi } = App.useApp();
   const [loading, setLoading] = useState(false);
 
   const onFinish = async (values) => {
@@ -78,8 +78,7 @@ const Login = () => {
   };
 
   return (
-    <App>
-      {contextHolder}
+    <>
       <div
         style={{
           display: "flex",
@@ -135,7 +134,7 @@ const Login = () => {
           </Form>
         </Card>
       </div>
-    </App>
+    </>
   );
 };
 
