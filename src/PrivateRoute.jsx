@@ -16,9 +16,11 @@ const isTokenExpired = (token) => {
 
 const PrivateRoute = ({ children }) => {
   const token = useSelector((state) => state.auth.token);
+
   if (!token || isTokenExpired(token)) {
     localStorage.removeItem("token");
     localStorage.removeItem("isAuthenticated");
+    localStorage.removeItem("isSubscription");
     localStorage.removeItem("user");
     localStorage.removeItem("business");
     localStorage.removeItem("config");

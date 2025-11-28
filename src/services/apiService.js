@@ -8,25 +8,40 @@ const siteUrl = import.meta.env.VITE_SITE_URL;
 const appUrl = import.meta.env.VITE_APP_URL;
 const adminUrl = import.meta.env.VITE_ADMIN_URL;
 const manageUrl = import.meta.env.VITE_MANAGE_URL;
-const timeout = import.meta.env.VITE_API_TIMEOUT;
+const timeout = parseInt(import.meta.env.VITE_API_TIMEOUT, 10) || 5000;
 
-// Base configuration for Axios
+// Axios instance
 const API = axios.create({
- baseURL: apiUrl,
-  timeout: parseInt(timeout, 10) || 5000, // Optional: timeout from env or default to 5000ms
+  baseURL: apiUrl,
+  timeout,
   headers: {
-    'X-Requested-With': 'XMLHttpRequest',
-    'Accept': 'application/json'
-  }
+    "X-Requested-With": "XMLHttpRequest",
+    Accept: "application/json",
+  },
 });
 
-// Helper: get decrypted token
-function getToken() {
+// Token helper
+const getToken = () => {
   const encrypted = localStorage.getItem("token");
   return encrypted ? EncryptionService.decrypt(encrypted) : null;
-}
+};
 
-// REQUEST interceptor: attach Authorization header
+const setToken = (token) => {
+  localStorage.setItem("token", EncryptionService.encrypt(token));
+};
+
+// Token refresh state
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    error ? prom.reject(error) : prom.resolve(token);
+  });
+  failedQueue = [];
+};
+
+// Attach token before request
 API.interceptors.request.use(
   (config) => {
     const token = getToken();
@@ -38,88 +53,76 @@ API.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// RESPONSE interceptor: handle 401 and refresh
-let isRefreshing = false;
-let failedQueue = [];
-
-const processQueue = (error, token = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
+// Token refresh logic
+const refreshToken = () => {
+  return API.post("/refresh").then((response) => {
+    const newToken = response.data?.data?.token;
+    if (!newToken) throw new Error("No new token received");
+    setToken(newToken);
+    return newToken;
   });
-  failedQueue = [];
 };
 
+// Response interceptor
 API.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     const originalRequest = error.config;
     const status = error.response?.status;
 
-    // If 401: try refresh once
-    if (status === 401 && !originalRequest._retry) {
+    const isLoginOrRefresh =
+      originalRequest?.url?.includes("/login") ||
+      originalRequest?.url?.includes("/refresh");
+
+    if (status === 401 && !originalRequest._retry && !isLoginOrRefresh) {
       if (isRefreshing) {
-        // queue the request until refresh finished
-        return new Promise(function (resolve, reject) {
+        return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return API(originalRequest);
-          })
-          .catch((err) => Promise.reject(err));
+        }).then((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return API(originalRequest);
+        });
       }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
-      // call your refresh endpoint
-      return new Promise((resolve, reject) => {
-        API.post("/refresh")
-          .then(({ data }) => {
-            const newToken = data.data.token;
-            // store new token
-            localStorage.setItem("token", EncryptionService.encrypt(newToken));
-            // update Redux state
-            store.dispatch(logout()); // or a dedicated refresh action
-            // resolve queued requests
-            processQueue(null, newToken);
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
-            resolve(API(originalRequest));
-          })
-          .catch((err) => {
-            processQueue(err, null);
-            // permanent failure: logout
-            store.dispatch(logout());
-            window.location.href = "/login";
-            reject(err);
-          })
-          .finally(() => {
-            isRefreshing = false;
-          });
-      });
+      try {
+        const newToken = await refreshToken();
+        processQueue(null, newToken);
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return API(originalRequest);
+      } catch (err) {
+        processQueue(err, null);
+        store.dispatch(logout());
+        window.location.href = "/login";
+        return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
+      }
     }
 
-    // For other errors
+    if (status === 403) {
+      console.warn("Forbidden: Access denied");
+    }
+
     if (status === 500) {
-      alert("Server error, please try again later.");
+      console.error("Server error, please try again later.");
     }
 
     return Promise.reject(error);
   }
 );
 
+// Unified API export
 export default {
   get: (url, params) => API.get(url, { params }),
   post: (url, data) => API.post(url, data),
   put: (url, data) => API.put(url, data),
   delete: (url, data) => API.delete(url, { data }),
-  apiUrl:apiUrl,
-    siteUrl:siteUrl,
-    appUrl:appUrl,
-    adminUrl:adminUrl,
-    manageUrl:manageUrl,
+  apiUrl,
+  siteUrl,
+  appUrl,
+  adminUrl,
+  manageUrl,
 };

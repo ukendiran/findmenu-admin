@@ -177,14 +177,11 @@ const Items = () => {
       const response = await apiService.get(`/items-with-category`, {
         businessId,
       });
-      console.log("response", response.data);
       if (response.data?.data) {
         const dataWithKeys = response.data.data.map((item, index) => ({
           ...item,
           key: genarateIndexKey(item.name, index)
         }));
-
-
         setData(dataWithKeys);
         setFilteredData(dataWithKeys);
       }
@@ -229,7 +226,6 @@ const Items = () => {
     setCurrentRecord(record);
     if (record) {
       fetchSubCategories(user.businessId, record.categoryId);
-      console.log("record", record);
       form.setFieldsValue(record);
       setImageFile({
         url: checkImageNull(record.image),
@@ -310,10 +306,9 @@ const Items = () => {
       fetchItems(user.businessId);
       handleDrawerCancel();
     } catch (error) {
-      console.error("Error saving item:", error);
       notificationApi.error({
         message: "Failed to save",
-        description: error.response?.data?.message || "Failed to save item. Please try again.",
+        description: extractErrorMessages(error, 'Failed to save item. Please try again.')
       });
     }
   };
@@ -341,8 +336,7 @@ const Items = () => {
     } catch (error) {
       notificationApi.error({
         message: "Update Failed",
-        description: error.response?.data?.message || "Failed to update category status",
-
+        description: extractErrorMessages(error, 'Failed to update category status')
       });
     }
   };
@@ -355,17 +349,14 @@ const Items = () => {
       setFilteredData((prevState) =>
         prevState.map((item) => (item.id === record.id ? { ...item, isAvailable } : item))
       );
-
       notificationApi.success({
         message: "Availability Updated",
         description: `Category "${record.name}" is now ${checked ? "available" : "unavailable"}.`,
-
       });
     } catch {
       notificationApi.error({
         message: "Update Failed",
-        description: "Failed to update category availability.",
-
+        description: extractErrorMessages(error, 'Failed to update category availability')
       });
     }
   };
@@ -392,10 +383,9 @@ const Items = () => {
       });
       fetchItems(user.businessId);
     } catch (error) {
-      console.error("Error deleting item:", error);
       notificationApi.error({
         message: "Failed to delete",
-        description: "Failed to delete item. Please try again.",
+        description: extractErrorMessages(error, 'Failed to delete item. Please try again.')
       });
     } finally {
       setIsDeleteModalOpen(false);

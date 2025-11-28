@@ -2,7 +2,6 @@ import { Layout, Row, Col, Card } from "antd";
 import { useEffect, useState, useCallback } from "react";
 import apiService from "../services/apiService";
 import { useSelector } from "react-redux";
-
 const { Content } = Layout;
 
 const Dashboard = () => {
@@ -48,7 +47,7 @@ const Dashboard = () => {
               {dashboardData?.feedback_count ? dashboardData?.feedback_count : 0} Active
             </Card>
           </Col>
-         
+
         </Row>
       </Content>
     </div>

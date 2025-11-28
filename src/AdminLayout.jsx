@@ -45,9 +45,6 @@ const AdminLayout = () => {
     return <Spin fullscreen />;
   }
 
-
-
-
   const handleLogout = () => {
     dispatch(logout());
     notificationApi.success({

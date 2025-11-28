@@ -42,7 +42,7 @@ export default function BusinessDetails({ businessId }) {
   const [removeLogo, setRemoveLogo] = useState(false);
   const [removeBanner, setRemoveBanner] = useState(false);
   const [businessData, setBusinessData] = useState(null);
-  const [api, contextHolder] = notification.useNotification();
+  const [notificationApi, contextHolder] = notification.useNotification();
 
   const getFullUrl = (file) => {
     if (!file) return null;
@@ -73,7 +73,6 @@ export default function BusinessDetails({ businessId }) {
         setRemoveBanner(false);
       } catch (e) {
         console.error("Error fetching business data:", e);
-        showNotification('error', 'Error', 'Failed to fetch business data');
       } finally {
         setLoading(false);
       }
@@ -92,13 +91,17 @@ export default function BusinessDetails({ businessId }) {
     const isLt2M = file.size / 1024 / 1024 < 2;
 
     if (!isImage || !isLt2M) {
-      showNotification(
-        'error',
-        'Upload Error',
-        isImage ? "Image must be smaller than 2MB!" : "Only image files are allowed"
-      );
+      setTimeout(() => {
+        notificationApi.error({
+          message: 'Upload Error',
+          description: isImage
+            ? "Image must be smaller than 2MB!"
+            : "Only image files are allowed",
+        });
+      }, 0);
       return false;
     }
+
 
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -162,12 +165,30 @@ export default function BusinessDetails({ businessId }) {
         if (response.data.data?.image) updatedData.image = response.data.data.image;
         if (response.data.data?.bannerImage) updatedData.bannerImage = response.data.data.bannerImage;
         setBusinessData(updatedData);
+
+        // Defer notification
+        setTimeout(() => {
+          notificationApi.success({
+            message: "Updated",
+            description: "Business updated successfully!",
+          });
+        }, 0);
       } else {
-        throw new Error(response.data.message || "Update failed");
+        setTimeout(() => {
+          notificationApi.error({
+            message: "Update Failed",
+            description: "Unable to update",
+          });
+        }, 0);
       }
-    } catch (e) {
-      console.error("Error updating business:", e);
-      showNotification('error', 'Error', e.message || 'Failed to update business');
+
+    } catch (error) {
+      setTimeout(() => {
+        notificationApi.error({
+          message: "Save Failed",
+          description: extractErrorMessages(error, 'Failed to update business'),
+        });
+      }, 0);
     } finally {
       setLoading(false);
     }
@@ -185,7 +206,7 @@ export default function BusinessDetails({ businessId }) {
   }
 
   return (
-    <App>
+    <>
       {contextHolder}
 
       {/* Header Section */}
