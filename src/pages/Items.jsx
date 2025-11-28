@@ -18,7 +18,7 @@ import {
 
 import { useSelector } from "react-redux";
 import apiService from "../services/apiService";
-import { SearchOutlined, UploadOutlined } from "@ant-design/icons";
+import { SearchOutlined, UploadOutlined, DeleteOutlined } from "@ant-design/icons";
 import { checkImageNull, genarateIndexKey } from "../utils/index";
 
 const { Title } = Typography;
@@ -38,6 +38,7 @@ const Items = () => {
   const [searchText, setSearchText] = useState("");
   const [filteredData, setFilteredData] = useState(data);
   const [imageFile, setImageFile] = useState(null);
+  const [removeImage, setRemoveImage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState(1);
   const [isAvailable, setIsAvailable] = useState(1);
@@ -224,13 +225,14 @@ const Items = () => {
     fetchCategories(user.businessId);
     setStatus(record?.status ?? 1); // 1 or 2
     setIsAvailable(record?.isAvailable ?? 1);
+    setRemoveImage(false);
     setCurrentRecord(record);
     if (record) {
       fetchSubCategories(user.businessId, record.categoryId);
       console.log("record", record);
       form.setFieldsValue(record);
       setImageFile({
-        url: record.image,
+        url: checkImageNull(record.image),
         name: record.image
       });
     } else {
@@ -240,9 +242,15 @@ const Items = () => {
     setIsDrawerVisible(true);
   };
 
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setRemoveImage(true);
+  };
+
   const handleDrawerCancel = () => {
     setIsDrawerVisible(false);
     setCurrentRecord(null);
+    setRemoveImage(false);
     form.resetFields();
   };
 
@@ -271,6 +279,9 @@ const Items = () => {
           return;
         }
         formData.append('image', imageFile.originFileObj);
+      }
+      if (removeImage) {
+        formData.append('removeImage', '1');
       }
 
       if (currentRecord?.id) {
@@ -510,16 +521,33 @@ const Items = () => {
           </Form.Item>
 
           <Form.Item name="image" label="Item Image">
-            <Space direction="horizontal">
-              {imageFile?.url && <Image src={imageFile.url} width={150} />}
-              <Upload
-                accept="image/*"
-                beforeUpload={() => false}
-                onChange={handleImageUpload}
-                showUploadList={false}
-              >
-                <Button icon={<UploadOutlined />}>Upload Image</Button>
-              </Upload>
+            <Space direction="vertical" size="small" style={{ width: '100%' }}>
+              <Image 
+                src={imageFile?.url || checkImageNull(null)} 
+                width={150} 
+                alt="Item Image" 
+              />
+              <Space>
+                <Upload
+                  accept="image/*"
+                  beforeUpload={() => false}
+                  onChange={handleImageUpload}
+                  showUploadList={false}
+                >
+                  <Button icon={<UploadOutlined />}>
+                    {imageFile?.url ? 'Change Image' : 'Upload Image'}
+                  </Button>
+                </Upload>
+                {imageFile?.url && (
+                  <Button
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={handleRemoveImage}
+                  >
+                    Remove Image
+                  </Button>
+                )}
+              </Space>
             </Space>
           </Form.Item>
 

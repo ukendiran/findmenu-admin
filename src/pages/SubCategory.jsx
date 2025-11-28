@@ -20,7 +20,7 @@ import {
 import { useSelector } from "react-redux";
 import apiService from "../services/apiService";
 
-import { SearchOutlined, UploadOutlined } from "@ant-design/icons";
+import { SearchOutlined, UploadOutlined, DeleteOutlined } from "@ant-design/icons";
 import { checkImageNull, genarateIndexKey } from "../utils/index";
 
 
@@ -40,6 +40,7 @@ const SubCategory = () => {
   const [searchText, setSearchText] = useState("");
   const [filteredData, setFilteredData] = useState(data);
   const [imageFile, setImageFile] = useState(null);
+  const [removeImage, setRemoveImage] = useState(false);
   const [status, setStatus] = useState(1);
   const [isAvailable, setIsAvailable] = useState(1);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -92,11 +93,12 @@ const SubCategory = () => {
     setCurrentRecord(record);
     setStatus(record?.status ?? 1); // 1 or 2
     setIsAvailable(record?.isAvailable ?? 1);
+    setRemoveImage(false);
     fetchCategories(user?.businessId)
     if (record) {
       form.setFieldsValue(record);
       setImageFile({
-        url: `${record.image}`,
+        url: checkImageNull(record.image),
         name: record.image
       });
     } else {
@@ -125,6 +127,9 @@ const SubCategory = () => {
       formData.append('code', business.code);
       if (imageFile?.originFileObj) {
         formData.append('image', imageFile.originFileObj);
+      }
+      if (removeImage) {
+        formData.append('removeImage', '1');
       }
 
       // Check if it's update or create
@@ -314,9 +319,15 @@ const SubCategory = () => {
     setFilteredData(filtered);
   };
 
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setRemoveImage(true);
+  };
+
   const handleDrawerCancel = () => {
     setIsDrawerVisible(false);
     setCurrentRecord(null);
+    setRemoveImage(false);
     form.resetFields();
   };
 
@@ -445,22 +456,35 @@ const SubCategory = () => {
 
 
           <Form.Item name="image" label="Category Image">
-            <Space direction="horizontal" align="start">
-              {imageFile?.url && (
+            <Space direction="vertical" size="small" style={{ width: '100%' }}>
+              <div style={{ position: 'relative', display: 'inline-block' }}>
                 <Image
                   width={150}
-                  src={imageFile.url}
+                  src={imageFile?.url || checkImageNull(null)}
                   alt="Category Image"
                 />
-              )}
-              <Upload
-                accept="image/*"
-                beforeUpload={() => false}
-                onChange={handleImageUpload}
-                showUploadList={false}
-              >
-                <Button icon={<UploadOutlined />}>Upload Image</Button>
-              </Upload>
+              </div>
+              <Space>
+                <Upload
+                  accept="image/*"
+                  beforeUpload={() => false}
+                  onChange={handleImageUpload}
+                  showUploadList={false}
+                >
+                  <Button icon={<UploadOutlined />}>
+                    {imageFile?.url ? 'Change Image' : 'Upload Image'}
+                  </Button>
+                </Upload>
+                {imageFile?.url && (
+                  <Button
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={handleRemoveImage}
+                  >
+                    Remove Image
+                  </Button>
+                )}
+              </Space>
             </Space>
           </Form.Item>
           

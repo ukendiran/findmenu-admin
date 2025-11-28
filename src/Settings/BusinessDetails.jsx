@@ -26,7 +26,8 @@ import {
   MailOutlined,
   PhoneOutlined,
   EnvironmentOutlined,
-  DollarOutlined
+  DollarOutlined,
+  DeleteOutlined
 } from "@ant-design/icons";
 import apiService from "../services/apiService";
 
@@ -38,6 +39,8 @@ export default function BusinessDetails({ businessId }) {
   const [loading, setLoading] = useState(true);
   const [imageFile, setImageFile] = useState(null);
   const [bannerImageFile, setBannerImageFile] = useState(null);
+  const [removeLogo, setRemoveLogo] = useState(false);
+  const [removeBanner, setRemoveBanner] = useState(false);
   const [businessData, setBusinessData] = useState(null);
   const [api, contextHolder] = notification.useNotification();
 
@@ -66,6 +69,8 @@ export default function BusinessDetails({ businessId }) {
 
         setImageFile(data.image ? { name: data.image, url: data.image } : null);
         setBannerImageFile(data.bannerImage ? { name: data.bannerImage, url: data.bannerImage } : null);
+        setRemoveLogo(false);
+        setRemoveBanner(false);
       } catch (e) {
         console.error("Error fetching business data:", e);
         showNotification('error', 'Error', 'Failed to fetch business data');
@@ -108,6 +113,16 @@ export default function BusinessDetails({ businessId }) {
     return false;
   };
 
+  const handleRemoveLogo = () => {
+    setImageFile(null);
+    setRemoveLogo(true);
+  };
+
+  const handleRemoveBanner = () => {
+    setBannerImageFile(null);
+    setRemoveBanner(true);
+  };
+
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
@@ -127,6 +142,12 @@ export default function BusinessDetails({ businessId }) {
       }
       if (bannerImageFile?.originFileObj) {
         formData.append("bannerImage", bannerImageFile.originFileObj);
+      }
+      if (removeLogo) {
+        formData.append("removeLogo", "1");
+      }
+      if (removeBanner) {
+        formData.append("removeBanner", "1");
       }
 
       const response = await apiService.post(`/business/${businessData.id}`, formData, {
@@ -409,25 +430,41 @@ export default function BusinessDetails({ businessId }) {
                     />
                   )}
 
-                  <Upload
-                    accept="image/*"
-                    beforeUpload={() => false}
-                    onChange={(info) => handleImageUpload(info, setImageFile)}
-                    showUploadList={false}
-                  >
-                    <Button
-                      type="dashed"
-                      icon={<UploadOutlined />}
-                      size="large"
-                    >
-                      {imageFile?.url ? 'Change Logo' : 'Upload Logo'}
-                    </Button>
-                  </Upload>
-
-                  <div style={{ color: '#8c8c8c', fontSize: 12 }}>
-                    <div>Recommended: JPEG, PNG, or WebP</div>
-                    <div>Square ratio • Max 2MB • 200×200px</div>
-                  </div>
+                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                    <Space>
+                      <Upload
+                        accept="image/*"
+                        beforeUpload={() => false}
+                        onChange={(info) => {
+                          handleImageUpload(info, setImageFile);
+                          setRemoveLogo(false);
+                        }}
+                        showUploadList={false}
+                      >
+                        <Button
+                          type="dashed"
+                          icon={<UploadOutlined />}
+                          size="large"
+                        >
+                          {imageFile?.url ? 'Change Logo' : 'Upload Logo'}
+                        </Button>
+                      </Upload>
+                      {imageFile?.url && (
+                        <Button
+                          danger
+                          icon={<DeleteOutlined />}
+                          size="large"
+                          onClick={handleRemoveLogo}
+                        >
+                          Remove Logo
+                        </Button>
+                      )}
+                    </Space>
+                    <div style={{ color: '#8c8c8c', fontSize: 12 }}>
+                      <div>Recommended: JPEG, PNG, or WebP</div>
+                      <div>Square ratio • Max 2MB • 200×200px</div>
+                    </div>
+                  </Space>
                 </Space>
               </div>
             </Card>
@@ -490,25 +527,41 @@ export default function BusinessDetails({ businessId }) {
                     </div>
                   )}
 
-                  <Upload
-                    accept="image/*"
-                    beforeUpload={() => false}
-                    onChange={(info) => handleImageUpload(info, setBannerImageFile)}
-                    showUploadList={false}
-                  >
-                    <Button
-                      type="dashed"
-                      icon={<UploadOutlined />}
-                      size="large"
-                    >
-                      {bannerImageFile?.url ? 'Change Banner' : 'Upload Banner'}
-                    </Button>
-                  </Upload>
-
-                  <div style={{ color: '#8c8c8c', fontSize: 12 }}>
-                    <div>Recommended: JPEG, PNG, or WebP</div>
-                    <div>Landscape ratio • Max 2MB • 500×300px</div>
-                  </div>
+                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                    <Space>
+                      <Upload
+                        accept="image/*"
+                        beforeUpload={() => false}
+                        onChange={(info) => {
+                          handleImageUpload(info, setBannerImageFile);
+                          setRemoveBanner(false);
+                        }}
+                        showUploadList={false}
+                      >
+                        <Button
+                          type="dashed"
+                          icon={<UploadOutlined />}
+                          size="large"
+                        >
+                          {bannerImageFile?.url ? 'Change Banner' : 'Upload Banner'}
+                        </Button>
+                      </Upload>
+                      {bannerImageFile?.url && (
+                        <Button
+                          danger
+                          icon={<DeleteOutlined />}
+                          size="large"
+                          onClick={handleRemoveBanner}
+                        >
+                          Remove Banner
+                        </Button>
+                      )}
+                    </Space>
+                    <div style={{ color: '#8c8c8c', fontSize: 12 }}>
+                      <div>Recommended: JPEG, PNG, or WebP</div>
+                      <div>Landscape ratio • Max 2MB • 500×300px</div>
+                    </div>
+                  </Space>
                 </Space>
               </div>
             </Card>

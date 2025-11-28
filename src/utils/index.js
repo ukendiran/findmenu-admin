@@ -9,7 +9,20 @@ export function genarateIndexKey(str, key) {
 }
 
 export function checkImageNull(image) {
-    if (image == null) return `${apiService.apiUrl}/images/no-image.png`;
+    // Check for null, undefined, empty string, or strings containing 'null' or 'undefined'
+    if (!image || 
+        image === null || 
+        image === undefined || 
+        image === '' || 
+        image === 'null' || 
+        image === 'undefined' ||
+        String(image).trim() === '') {
+        return `${apiService.apiUrl}/images/no-image.png`;
+    }
+    // If image already contains full URL, return as is
+    if (image.startsWith('http://') || image.startsWith('https://') || image.startsWith('data:')) {
+        return image;
+    }
     return `${apiService.apiUrl}/${image}`;
 }
 

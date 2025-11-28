@@ -9,7 +9,7 @@ import {
   Space,
   Switch,
   Typography,
-  notification,
+  App,
   theme,
 } from "antd";
 import {
@@ -39,6 +39,7 @@ export default function TopNavBar({
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { token: { colorBgContainer } } = theme.useToken();
+  const { notification } = App.useApp();
 
   // ✅ Sidebar toggle state
   const [isCollapsed, setIsCollapsed] = useState(collapsed);
