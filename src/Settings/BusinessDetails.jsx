@@ -60,13 +60,6 @@ export default function BusinessDetails({ businessId }) {
         const data = result.data.data;
         setBusinessData(data);
 
-        setTimeout(() => {
-          form.setFieldsValue({
-            ...data,
-            group: data.group?.name || 'N/A'
-          });
-        }, 0);
-
         setImageFile(data.image ? { name: data.image, url: data.image } : null);
         setBannerImageFile(data.bannerImage ? { name: data.bannerImage, url: data.bannerImage } : null);
         setRemoveLogo(false);
@@ -78,8 +71,20 @@ export default function BusinessDetails({ businessId }) {
       }
     };
 
-    fetchBusinessData();
-  }, [businessId, form]);
+    if (businessId) {
+      fetchBusinessData();
+    }
+  }, [businessId]);
+
+  // Set form values after businessData is loaded and Form is mounted
+  useEffect(() => {
+    if (businessData && !loading) {
+      form.setFieldsValue({
+        ...businessData,
+        group: businessData.group?.name || 'N/A'
+      });
+    }
+  }, [businessData, loading, form]);
 
   const showNotification = useCallback((type, message, description) => {
     notificationApi[type]({ message, description });

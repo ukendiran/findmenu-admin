@@ -124,7 +124,10 @@ const Feedback = () => {
             {/* Feedback List */}
             {loading ? (
               <div style={{ textAlign: "center", padding: "60px 0" }}>
-                <Spin tip="Loading feedback..." size="large" />
+                <Spin size="large" />
+                <div style={{ marginTop: 16 }}>
+                  <Text type="secondary">Loading feedback...</Text>
+                </div>
               </div>
             ) : filteredData.length === 0 ? (
               <Empty description="No feedback found" style={{ padding: "60px 0" }} />
