@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Table,
   Typography,
@@ -17,7 +17,7 @@ import {
 import { useSelector } from "react-redux";
 import { SearchOutlined, UploadOutlined } from "@ant-design/icons";
 import apiService from "../services/apiService";
-import { extractErrorMessages } from "../utils/errorHelper";
+import { checkImageNull } from "../utils/index";
 
 const { Title } = Typography;
 
@@ -45,7 +45,7 @@ const MainCategory = () => {
     }
   }, [user]);
 
-  const fetchCategories = async (businessId) => {
+  const fetchCategories = useCallback(async (businessId) => {
     try {
       setLoading(true);
       const response = await apiService.get(`/main-categories`, { businessId });
@@ -67,7 +67,7 @@ const MainCategory = () => {
       setLoading(false);
 
     }
-  };
+  }, [notificationApi]);
 
   const showDrawer = (record = null) => {
     console.log("showDrawer", record);
@@ -77,7 +77,7 @@ const MainCategory = () => {
     if (record) {
       form.setFieldsValue(record);
       setImageFile({
-        url: `${record.image}`,
+        url: checkImageNull(record.image),
         name: record.image
       });
     } else {
@@ -363,13 +363,11 @@ const MainCategory = () => {
 
           <Form.Item name="image" label="Category Image" style={{ display: 'none' }}>
             <Space direction="horizontal" align="start">
-              {imageFile?.url && (
-                <Image
-                  width={150}
-                  src={imageFile.url}
-                  alt="Category Image"
-                />
-              )}
+              <Image
+                width={150}
+                src={imageFile?.url || checkImageNull(null)}
+                alt="Category Image"
+              />
               <Upload
                 accept="image/*"
                 beforeUpload={() => false}

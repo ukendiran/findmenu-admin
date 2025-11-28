@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Form, Select, Spin } from "antd";
+import PropTypes from "prop-types";
+import { Form, Select } from "antd";
 import apiService from '../services/apiService';
 
 const BusinessTypeSelect = ({ form }) => {
@@ -39,6 +40,10 @@ const BusinessTypeSelect = ({ form }) => {
             />
         </Form.Item>
     );
+};
+
+BusinessTypeSelect.propTypes = {
+    form: PropTypes.object.isRequired,
 };
 
 export default BusinessTypeSelect;

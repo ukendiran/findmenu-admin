@@ -3,7 +3,7 @@ import {
   UserOutlined,
   SettingOutlined,
   DashboardOutlined,
-  TeamOutlined,
+  MessageOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, theme, notification, App, Spin } from "antd";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
@@ -38,7 +38,7 @@ const AdminLayout = () => {
   useEffect(() => {
     setBusinessData(business || []);
     setSelectedKeys([location.pathname]);
-  }, []);
+  }, [business, location.pathname]);
 
 
   if (user === undefined) {
@@ -85,24 +85,8 @@ const AdminLayout = () => {
         { key: "/menus/sub-category", label: "Sub Category", path: "/menus/sub-category" },
         { key: "/menus/items", label: "Items", path: "/menus/items" },
       ],
-    },
-    {
-      key: "accounts",
-      icon: <SettingOutlined />, label: "Accounts",
-      children: [
-        { key: "/accounts/subscriptions", icon: <TeamOutlined />, label: "Subscriptions", path: "/accounts/subscriptions" },
-        { key: "/accounts/payments", icon: <TeamOutlined />, label: "Payments", path: "/accounts/payments" },
-      ],
-    },
-    {
-      key: "others",
-      icon: <SettingOutlined />, label: "Others",
-      children: [
-        { key: "/feedback", label: "Feedback", path: "/feedback" },
-        { key: "/import", label: "Import", path: "/import" },
-      ],
-    },
-
+    },    
+    { key: "/feedback", icon: <MessageOutlined />, label: "Feedback", path: "/feedback" },
     { key: "/settings", icon: <SettingOutlined />, label: "Settings", path: "/settings" },
     { key: "logout", icon: <SettingOutlined />, label: "Logout", onClick: handleLogout },
   ];

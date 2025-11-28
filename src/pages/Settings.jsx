@@ -5,11 +5,14 @@ import Notifications from "../Settings/Notifications";
 import QRCodePage from "../Settings/QRCodePage";
 import MenuManagement from "../Settings/MenuManagement";
 import PasswordManagement from "../Settings/PasswordManagement";
+import apiService from "../services/apiService";
 const { Title } = Typography
 
 const Settings = () => {
   const user = useSelector((state) => state.auth.user);
   const business = useSelector((state) => state.auth.business);
+  const businessUrl = `${apiService.appUrl}/${business.code}`;
+  const groupUrl = `${apiService.appUrl}/group/${business.group?.code || undefined}`;
 
   if (!user) {
     return <p>Loading user data...</p>; // ✅ Prevents rendering before `user` is available
@@ -30,15 +33,26 @@ const Settings = () => {
     {
       key: "3",
       label: "QR Code",
-      children: <QRCodePage businessCode={business.code} />,
+      children: <QRCodePage url={businessUrl} businessCode={business.code} />,
     },
+    ...(business?.group_id
+      ? [
+        {
+          key: "4",
+          label: "Group QR Code",
+          children: (
+            <QRCodePage url={groupUrl} businessCode={business?.code} />
+          ),
+        },
+      ]
+      : []),
     {
-      key: "4",
+      key: "5",
       label: "Menu Management",
       children: <MenuManagement businessId={user.businessId} />,
     },
     {
-      key: "5",
+      key: "6",
       label: "Password Management",
       children: <PasswordManagement business={business} />,
     },
