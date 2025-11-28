@@ -25,7 +25,7 @@ const { Title } = Typography;
 
 const Signup = () => {
   const navigate = useNavigate();
-  const [notificationApi, contextHolder] = notification.useNotification();
+  const { notification: notificationApi } = App.useApp();
   const [formSubmit, setFormSubmit] = useState(false);
   const onFinish = (values) => {
     delete values["confirmPassword"];
@@ -44,8 +44,7 @@ const Signup = () => {
   };
 
   return (
-    <App>
-      {contextHolder}
+    <>
       <div style={{ padding: "50px 0", backgroundColor: "#f9f9f9" }}>
         <Row justify="center">
           <Col xs={24} sm={18} md={12} lg={8}>
@@ -195,7 +194,7 @@ const Signup = () => {
           </Col>
         </Row>
       </div>
-    </App>
+    </>
   );
 };
 

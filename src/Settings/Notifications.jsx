@@ -13,7 +13,7 @@ export default function Notifications() {
   const [formData, setFormData] = useState({});
   // const user = useSelector((state) => state.auth.user);
   const config = useSelector((state) => state.auth.config);
-  const [notificationApi, contextHolder] = notification.useNotification();
+  const { notification: notificationApi } = App.useApp();
 
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -99,9 +99,7 @@ export default function Notifications() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <App>
-      {contextHolder}
-
+    <>
       <Form layout="vertical">
         <Row gutter={[24]}>
           <Col sm={24} lg={12}>
@@ -276,7 +274,7 @@ export default function Notifications() {
         </Row>
       </Form>
 
-    </App >
+    </>
   );
 }
 

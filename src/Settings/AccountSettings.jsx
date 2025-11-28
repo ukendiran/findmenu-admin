@@ -14,7 +14,7 @@ export default function AccountSettings({ businessId, userId }) {
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState([]);
 
-  const [notificationApi, contextHolder] = notification.useNotification();
+  const { notification: notificationApi } = App.useApp();
   useEffect(() => {
     getUserData();
   }, [businessId, getUserData]);
@@ -93,8 +93,7 @@ export default function AccountSettings({ businessId, userId }) {
   };
 
   return (
-    <App>
-      {contextHolder}
+    <>
       {!loading && userData ? (
         <Form layout="vertical" onFinish={handleSubmit}>
           <Row gutter={[16, 16]} justify="start" align="middle">
@@ -160,7 +159,7 @@ export default function AccountSettings({ businessId, userId }) {
           <Spin size="large" />
         </div>
       )}
-    </App>
+    </>
   );
 }
 

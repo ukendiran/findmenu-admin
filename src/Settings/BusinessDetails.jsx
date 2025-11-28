@@ -42,7 +42,7 @@ export default function BusinessDetails({ businessId }) {
   const [removeLogo, setRemoveLogo] = useState(false);
   const [removeBanner, setRemoveBanner] = useState(false);
   const [businessData, setBusinessData] = useState(null);
-  const [notificationApi, contextHolder] = notification.useNotification();
+  const { notification: notificationApi } = App.useApp();
 
   const getFullUrl = (file) => {
     if (!file) return null;
@@ -82,8 +82,8 @@ export default function BusinessDetails({ businessId }) {
   }, [businessId, form]);
 
   const showNotification = useCallback((type, message, description) => {
-    api[type]({ message, description });
-  }, [api]);
+    notificationApi[type]({ message, description });
+  }, [notificationApi]);
 
   const handleImageUpload = (info, setter) => {
     const file = info.file;
@@ -207,7 +207,6 @@ export default function BusinessDetails({ businessId }) {
 
   return (
     <>
-      {contextHolder}
 
       {/* Header Section */}
       <div style={{ marginBottom: 32 }}>
