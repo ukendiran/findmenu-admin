@@ -2,7 +2,7 @@
 import React from 'react';
 import { Table, Spin, Typography, Button, Space, message } from 'antd';
 import { EditOutlined, EyeOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons';
-import Papa from 'papaparse'; // ✅ Correct usage
+import Papa from 'papaparse';
 
 const { Title } = Typography;
 

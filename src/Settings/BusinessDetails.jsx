@@ -625,7 +625,7 @@ export default function BusinessDetails({ businessId }) {
           border-color: #d6e4ff;
         }
       `}</style>
-    </App>
+    </>
   );
 }
 

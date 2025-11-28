@@ -9,10 +9,9 @@ import {
   Space,
   Switch,
   Typography,
-  App,
-  theme,
-  App,
-  notification
+    App,
+    theme,
+    notification
 } from "antd";
 import {
   SettingOutlined,
