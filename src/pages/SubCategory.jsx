@@ -7,7 +7,6 @@ import {
   Form,
   Input,
   Select,
-  notification,
   Image,
   Switch,
   Modal,
@@ -27,6 +26,7 @@ import apiService from "../services/apiService";
 
 import { SearchOutlined, UploadOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { checkImageNull, genarateIndexKey } from "../utils/index";
+import { extractErrorMessages } from "../utils/errorHelper";
 
 
 const { Title } = Typography;
@@ -343,7 +343,7 @@ const SubCategory = () => {
                 cover={
                   <div
                     style={{
-                      height: 200,
+                      height: "auto",
                       overflow: "hidden",
                       display: "flex",
                       alignItems: "center",
@@ -360,7 +360,7 @@ const SubCategory = () => {
                         height: "100%",
                         objectFit: "cover",
                       }}
-                      fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
+                      fallback={`${apiService.apiUrl}/images/no-image.jpg`}
                     />
                   </div>
                 }

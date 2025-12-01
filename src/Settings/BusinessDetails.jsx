@@ -30,6 +30,7 @@ import {
   DeleteOutlined
 } from "@ant-design/icons";
 import apiService from "../services/apiService";
+import { extractErrorMessages } from "../utils/errorHelper";
 
 const { TextArea } = Input;
 const { Title, Text } = Typography;
@@ -91,7 +92,19 @@ export default function BusinessDetails({ businessId }) {
   }, [notificationApi]);
 
   const handleImageUpload = (info, setter) => {
-    const file = info.file;
+    const file = info.file.originFileObj || info.file;
+    
+    // Ensure we have a File object
+    if (!(file instanceof File)) {
+      setTimeout(() => {
+        notificationApi.error({
+          message: 'Upload Error',
+          description: "Invalid file object",
+        });
+      }, 0);
+      return false;
+    }
+
     const isImage = file.type?.startsWith("image/");
     const isLt2M = file.size / 1024 / 1024 < 2;
 
@@ -106,7 +119,6 @@ export default function BusinessDetails({ businessId }) {
       }, 0);
       return false;
     }
-
 
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -145,11 +157,11 @@ export default function BusinessDetails({ businessId }) {
       formData.append("id", businessData.id);
       formData.append("_method", "PUT");
 
-      if (imageFile?.originFileObj) {
-        formData.append("image", imageFile.originFileObj);
+      if (imageFile?.originFileObj && imageFile.originFileObj instanceof File) {
+        formData.append("image", imageFile.originFileObj, imageFile.originFileObj.name);
       }
-      if (bannerImageFile?.originFileObj) {
-        formData.append("bannerImage", bannerImageFile.originFileObj);
+      if (bannerImageFile?.originFileObj && bannerImageFile.originFileObj instanceof File) {
+        formData.append("bannerImage", bannerImageFile.originFileObj, bannerImageFile.originFileObj.name);
       }
       if (removeLogo) {
         formData.append("removeLogo", "1");
@@ -158,11 +170,7 @@ export default function BusinessDetails({ businessId }) {
         formData.append("removeBanner", "1");
       }
 
-      const response = await apiService.post(`/business/${businessData.id}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      const response = await apiService.post(`/business/${businessData.id}`, formData);
 
       if (response.data.success) {
         showNotification('success', 'Success', 'Business details updated successfully!');
@@ -486,7 +494,7 @@ export default function BusinessDetails({ businessId }) {
                       )}
                     </Space>
                     <div style={{ color: '#8c8c8c', fontSize: 12 }}>
-                      <div>Recommended: JPEG, PNG, or WebP</div>
+                      <div>Recommended: JPEG, PNG, WebP, or AVIF</div>
                       <div>Square ratio • Max 2MB • 200×200px</div>
                     </div>
                   </Space>
@@ -583,7 +591,7 @@ export default function BusinessDetails({ businessId }) {
                       )}
                     </Space>
                     <div style={{ color: '#8c8c8c', fontSize: 12 }}>
-                      <div>Recommended: JPEG, PNG, or WebP</div>
+                      <div>Recommended: JPEG, PNG, WebP, or AVIF</div>
                       <div>Landscape ratio • Max 2MB • 500×300px</div>
                     </div>
                   </Space>

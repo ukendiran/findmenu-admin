@@ -116,10 +116,10 @@ API.interceptors.response.use(
 
 // Unified API export
 export default {
-  get: (url, params) => API.get(url, { params }),
-  post: (url, data) => API.post(url, data),
-  put: (url, data) => API.put(url, data),
-  delete: (url, data) => API.delete(url, { data }),
+  get: (url, params, config) => API.get(url, { params, ...config }),
+  post: (url, data, config) => API.post(url, data, config),
+  put: (url, data, config) => API.put(url, data, config),
+  delete: (url, data, config) => API.delete(url, { data, ...config }),
   apiUrl,
   siteUrl,
   appUrl,

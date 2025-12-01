@@ -17,6 +17,7 @@ import {
   LockOutlined,
   RightOutlined,
   DownOutlined,
+  BgColorsOutlined,
 } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import BusinessDetails from "../Settings/BusinessDetails";
@@ -24,6 +25,7 @@ import Notifications from "../Settings/Notifications";
 import QRCodePage from "../Settings/QRCodePage";
 import MenuManagement from "../Settings/MenuManagement";
 import PasswordManagement from "../Settings/PasswordManagement";
+import ThemeManagement from "../Settings/ThemeManagement";
 import apiService from "../services/apiService";
 
 const { Title, Text } = Typography;
@@ -93,6 +95,14 @@ const Settings = () => {
       description: "Change your account password",
       color: "#f5222d",
       component: <PasswordManagement business={business} />,
+    },
+    {
+      id: "theme-management",
+      title: "Theme Management",
+      icon: <BgColorsOutlined />,
+      description: "Customize your business menu theme and colors",
+      color: "#722ed1",
+      component: <ThemeManagement businessId={user.businessId} />,
     },
   ];
 

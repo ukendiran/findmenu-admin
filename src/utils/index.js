@@ -17,7 +17,7 @@ export function checkImageNull(image) {
         image === 'null' || 
         image === 'undefined' ||
         String(image).trim() === '') {
-        return `${apiService.apiUrl}/images/no-image.png`;
+        return `${apiService.apiUrl}/images/no-image.jpg`;
     }
     // If image already contains full URL, return as is
     if (image.startsWith('http://') || image.startsWith('https://') || image.startsWith('data:')) {

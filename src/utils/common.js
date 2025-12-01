@@ -3,7 +3,7 @@ import apiService from "../services/apiService";
 const imageUrl = (image,path="") => {
 
   if(image === "" || image === null){
-    image =  "images/no-image.png";
+    image =  "images/no-image.jpg";
   }
  const url = `${apiService.appUrl}${path}/${image}`;
     return url;
