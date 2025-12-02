@@ -20,11 +20,13 @@ import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
 } from "@ant-design/icons";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../store/slices/authSlice";
+import apiService from "../services/apiService";
+import dayjs from "dayjs";
 
 
 
@@ -43,9 +45,12 @@ export default function TopNavBar({
   const navigate = useNavigate();
   const { token: { colorBgContainer } } = theme.useToken();
   const { notification: notificationApi } = App.useApp();
+  const user = useSelector((state) => state.auth.user);
 
   // ✅ Sidebar toggle state
   const [isCollapsed, setIsCollapsed] = useState(collapsed);
+  const [notifications, setNotifications] = useState([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
 
   // ✅ Toggle sidebar function
   const toggleSidebar = () => {
@@ -53,14 +58,76 @@ export default function TopNavBar({
     handleCollapsed(!isCollapsed);
   };
 
+  // ✅ Fetch notifications
+  const fetchNotifications = useCallback(async () => {
+    if (!user?.businessId) return;
 
+    setLoadingNotifications(true);
+    try {
+      const response = await apiService.get(`/notifications`, {
+        businessId: user.businessId,
+        status: 1, // Only unread notifications
+      });
 
-  // ✅ Sample notifications (replace with real data)
-  const notifications = [
-    { id: 1, title: "New User", description: "John Doe registered", time: "2 min ago", read: false },
-    { id: 2, title: "System Update", description: "Update completed", time: "1 hr ago", read: false },
-  ];
-  const unreadCount = notifications.filter((n) => !n.read).length;
+      if (response.data?.data) {
+        setNotifications(response.data.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch notifications:", err);
+    } finally {
+      setLoadingNotifications(false);
+    }
+  }, [user?.businessId]);
+
+  useEffect(() => {
+    fetchNotifications();
+    // Refresh notifications every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
+
+  const unreadCount = notifications.length;
+
+  // ✅ Mark notification as read
+  const handleMarkAsRead = async (notificationId) => {
+    try {
+      await apiService.put(`/notifications/${notificationId}/mark-read`);
+      // Remove from list
+      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+      notificationApi.success({
+        message: "Success",
+        description: "Notification marked as read",
+      });
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err);
+      notificationApi.error({
+        message: "Error",
+        description: "Failed to mark notification as read",
+      });
+    }
+  };
+
+  // ✅ Mark all notifications as read
+  const handleMarkAllAsRead = async () => {
+    if (!user?.businessId || notifications.length === 0) return;
+
+    try {
+      await apiService.put(`/notifications/mark-all-read`, {
+        businessId: user.businessId,
+      });
+      setNotifications([]);
+      notificationApi.success({
+        message: "Success",
+        description: "All notifications marked as read",
+      });
+    } catch (err) {
+      console.error("Failed to mark all notifications as read:", err);
+      notificationApi.error({
+        message: "Error",
+        description: "Failed to mark all notifications as read",
+      });
+    }
+  };
 
   // ✅ Notification dropdown content
   const notificationContent = (
@@ -68,21 +135,51 @@ export default function TopNavBar({
       <div style={{ padding: "8px 16px" }}>
         <Space style={{ width: "100%", justifyContent: "space-between" }}>
           <Text strong>Notifications</Text>
-          <Button type="link" size="small">Mark all as read</Button>
+          {notifications.length > 0 && (
+            <Button type="link" size="small" onClick={handleMarkAllAsRead}>
+              Mark all as read
+            </Button>
+          )}
         </Space>
       </div>
       <Divider style={{ margin: "0" }} />
-      <List
-        dataSource={notifications}
-        renderItem={(item) => (
-          <List.Item style={{ padding: "12px 16px" }}>
-            <List.Item.Meta
-              title={<Space>{!item.read && <Badge status="processing" />} {item.title}</Space>}
-              description={<div><div>{item.description}</div><Text type="secondary" style={{ fontSize: "12px" }}>{item.time}</Text></div>}
-            />
-          </List.Item>
-        )}
-      />
+      {loadingNotifications ? (
+        <div style={{ textAlign: "center", padding: "20px" }}>
+          <Text type="secondary">Loading...</Text>
+        </div>
+      ) : notifications.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "20px" }}>
+          <Text type="secondary">No new notifications</Text>
+        </div>
+      ) : (
+        <List
+          dataSource={notifications}
+          renderItem={(item) => (
+            <List.Item
+              style={{
+                padding: "12px 16px",
+                cursor: "pointer",
+                backgroundColor: item.status === 1 ? "#f0f7ff" : "#fff",
+              }}
+              onClick={() => handleMarkAsRead(item.id)}
+            >
+              <List.Item.Meta
+                title={
+                  <Space>
+                    {item.status === 1 && <Badge status="processing" />}
+                    <Text>{item.message || "Notification"}</Text>
+                  </Space>
+                }
+                description={
+                  <Text type="secondary" style={{ fontSize: "12px" }}>
+                    {dayjs(item.created_at).format("MMM D, YYYY h:mm A")}
+                  </Text>
+                }
+              />
+            </List.Item>
+          )}
+        />
+      )}
     </div>
   );
 
@@ -143,7 +240,7 @@ export default function TopNavBar({
         <Space style={{ marginRight: 24 }}>
           Google Review
           <Switch checkedChildren="On" unCheckedChildren="Off" checked={configData?.googleReviewStatus === 1} onChange={handleGoogleReview} />
-          <Dropdown disabled={true} trigger={["click"]} dropdownRender={() => notificationContent}>
+          <Dropdown trigger={["click"]} dropdownRender={() => notificationContent}>
             <Badge count={unreadCount} size="small">
               <Button type="text" icon={<BellOutlined style={{ fontSize: "18px" }} />} />
             </Badge>

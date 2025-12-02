@@ -18,8 +18,6 @@ const Login = () => {
     try {
       const response = await apiService.post("login", values);
       const result = response.data;
-
-      console.log(result)
       let isSubscribed = false;
       if (result.success) {
         if (result.data.subscription !== null) {

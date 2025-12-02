@@ -191,7 +191,7 @@ export default function ThemeManagement({ businessId }) {
                         margin: 0,
                         cursor: 'pointer',
                       }}
-                      bodyStyle={{ padding: '16px' }}
+                      styles={{ body: { padding: '16px' } }}
                     >
                       <Space direction="vertical" size="small" style={{ width: '100%' }}>
                         <div

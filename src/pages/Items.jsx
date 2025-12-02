@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import {
-  Table,
   Typography,
   Space,
   Button,
@@ -14,12 +13,19 @@ import {
   Modal,
   App,
   Upload,
+  Row,
+  Col,
+  Card,
+  Spin,
+  Empty,
+  Tag,
 } from "antd";
 
 import { useSelector } from "react-redux";
 import apiService from "../services/apiService";
-import { SearchOutlined, UploadOutlined, DeleteOutlined } from "@ant-design/icons";
+import { SearchOutlined, UploadOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { checkImageNull, genarateIndexKey } from "../utils/index";
+import { extractErrorMessages } from "../utils/errorHelper";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -44,95 +50,6 @@ const Items = () => {
   const [isAvailable, setIsAvailable] = useState(1);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [recordToDelete, setRecordToDelete] = useState(null);
-
-
-  const columns = [
-    {
-      title: "Item Name",
-      dataIndex: "name",
-      key: "name",
-      width: "200px",
-      onFilter: (value, record) => record.name.includes(value),
-      sorter: (a, b) => a.name.localeCompare(b.name),
-    },
-    {
-      title: "Category",
-      dataIndex: ["category", "name"],
-      key: "category.name",
-      sorter: (a, b) => (a.category?.name || "").localeCompare(b.category?.name || ""),
-    },
-    {
-      title: "Sub Category",
-      dataIndex: ["sub_category", "name"],
-      key: "sub_category.name",
-      sorter: (a, b) => (a.sub_category?.name || "").localeCompare(b.sub_category?.name || ""),
-    },
-    {
-      title: "Price",
-      dataIndex: "price",
-      key: "price",
-      width: "200px",
-      sorter: (a, b) => {
-        // Handle cases where either price is null or undefined
-        const priceA = a.price || "";
-        const priceB = b.price || "";
-        return priceA.localeCompare(priceB);
-      },
-    },
-    {
-      title: "Image",
-      dataIndex: "image",
-      key: "image",
-      width: "200",
-      render: (image) => (
-        <Image
-          src={checkImageNull(image)}
-          alt="item"
-          style={{
-            width: 150,
-            height: 100,
-            objectFit: "cover",
-            borderRadius: "4px",
-          }}
-        />
-      ),
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status, record) => (
-        <Switch checkedChildren="On" unCheckedChildren="Off" checked={status === 1} onChange={(checked) => handleStatus(checked, record)} />
-      ),
-    },
-    {
-      title: "Availability",
-      dataIndex: "isAvailable",
-      key: "isAvailable",
-      render: (isAvailable, record) => (
-        <Switch checkedChildren="On" unCheckedChildren="Off" checked={isAvailable === 1} onChange={(checked) => handleAvailablity(checked, record)} />
-      ),
-    },
-    {
-      title: "Actions",
-      key: "actions",
-      render: (_, record) => (
-        <Space>
-          <Button size="small" onClick={() => showDrawer(record)}>
-            Edit
-          </Button>
-          <Button
-            size="small"
-            type="primary"
-            danger
-            onClick={() => handleDelete(record)}
-          >
-            Delete
-          </Button>
-        </Space>
-      ),
-    },
-  ];
 
   useEffect(() => {
     if (user?.businessId) {
@@ -322,21 +239,24 @@ const Items = () => {
   const handleStatus = async (checked, record) => {
     try {
       const status = checked ? 1 : 2;
-      await apiService.put(`/items/${record.id}`, { status });
+      await apiService.put(`/items/${record.id}`, { status, businessId: user.businessId });
 
       setFilteredData((prevState) =>
+        prevState.map((item) => (item.id === record.id ? { ...item, status } : item))
+      );
+      setData((prevState) =>
         prevState.map((item) => (item.id === record.id ? { ...item, status } : item))
       );
 
       notificationApi.success({
         message: "Status Updated",
-        description: `Category "${record.name}" has been ${checked ? "enabled" : "disabled"}.`,
+        description: `Item "${record.name}" has been ${checked ? "enabled" : "disabled"}.`,
 
       });
     } catch (error) {
       notificationApi.error({
         message: "Update Failed",
-        description: extractErrorMessages(error, 'Failed to update category status')
+        description: extractErrorMessages(error, 'Failed to update item status')
       });
     }
   };
@@ -344,19 +264,22 @@ const Items = () => {
   const handleAvailablity = async (checked, record) => {
     try {
       const isAvailable = checked ? 1 : 2;
-      await apiService.put(`/items/${record.id}`, { isAvailable });
+      await apiService.put(`/items/${record.id}`, { isAvailable, businessId: user.businessId });
 
       setFilteredData((prevState) =>
         prevState.map((item) => (item.id === record.id ? { ...item, isAvailable } : item))
       );
+      setData((prevState) =>
+        prevState.map((item) => (item.id === record.id ? { ...item, isAvailable } : item))
+      );
       notificationApi.success({
         message: "Availability Updated",
-        description: `Category "${record.name}" is now ${checked ? "available" : "unavailable"}.`,
+        description: `Item "${record.name}" is now ${checked ? "available" : "unavailable"}.`,
       });
-    } catch {
+    } catch (error) {
       notificationApi.error({
         message: "Update Failed",
-        description: extractErrorMessages(error, 'Failed to update category availability')
+        description: extractErrorMessages(error, 'Failed to update item availability')
       });
     }
   };
@@ -422,13 +345,127 @@ const Items = () => {
         </Button>
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={filteredData}
-        scroll={{ x: "max-content", y: "60vh" }}
-        pagination={false}
-        loading={loading}
-      />
+      {loading ? (
+        <div style={{ textAlign: "center", padding: "60px 0" }}>
+          <Spin size="large" />
+        </div>
+      ) : filteredData.length === 0 ? (
+        <Empty description="No items found" style={{ padding: "60px 0" }} />
+      ) : (
+        <Row gutter={[16, 16]}>
+          {filteredData.map((record) => (
+            <Col xs={24} sm={12} md={8} lg={6} xl={6} key={record.id}>
+              <Card
+                hoverable
+                style={{
+                  borderRadius: 8,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+                cover={
+                  <div
+                    style={{
+                      height: 150,
+                      overflow: "hidden",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "#f5f5f5",
+                    }}
+                  >
+                    <Image
+                      src={checkImageNull(record.image)}
+                      alt={record.name}
+                      preview={false}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  </div>
+                }
+                actions={[
+                  <Button
+                    key="edit"
+                    type="text"
+                    icon={<EditOutlined />}
+                    onClick={() => showDrawer(record)}
+                  >
+                    Edit
+                  </Button>,
+                  <Button
+                    key="delete"
+                    type="text"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => handleDelete(record)}
+                  >
+                    Delete
+                  </Button>,
+                ]}
+              >
+                <Card.Meta
+                  title={
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span style={{ fontSize: 16, fontWeight: 600 }}>{record.name}</span>
+                    </div>
+                  }
+                  description={
+                    <Space direction="vertical" size="small" style={{ width: "100%", marginTop: 12 }}>
+                      {record.price && (
+                        <div style={{ fontSize: 14, fontWeight: 500, color: "#1890ff" }}>
+                          Price: {record.price}
+                        </div>
+                      )}
+                      {record.category?.name && (
+                        <div style={{ fontSize: 12, color: "#666" }}>
+                          <strong>Category:</strong> {record.category.name}
+                        </div>
+                      )}
+                      {record.sub_category?.name && (
+                        <div style={{ fontSize: 12, color: "#666" }}>
+                          <strong>Sub Category:</strong> {record.sub_category.name}
+                        </div>
+                      )}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: 12, color: "#666" }}>Status:</span>
+                        <Switch
+                          checkedChildren="On"
+                          unCheckedChildren="Off"
+                          checked={record.status === 1}
+                          onChange={(checked) => handleStatus(checked, record)}
+                          size="small"
+                        />
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: 12, color: "#666" }}>Availability:</span>
+                        <Switch
+                          checkedChildren="On"
+                          unCheckedChildren="Off"
+                          checked={record.isAvailable === 1}
+                          onChange={(checked) => handleAvailablity(checked, record)}
+                          size="small"
+                        />
+                      </div>
+                      <div style={{ marginTop: 4 }}>
+                        <Tag color={record.status === 1 ? "success" : "default"}>
+                          {record.status === 1 ? "Active" : "Inactive"}
+                        </Tag>
+                        <Tag color={record.isAvailable === 1 ? "blue" : "default"}>
+                          {record.isAvailable === 1 ? "Available" : "Unavailable"}
+                        </Tag>
+                      </div>
+                    </Space>
+                  }
+                />
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      )}
 
       <Drawer
         title={currentRecord ? "Edit Item" : "Add Item"}

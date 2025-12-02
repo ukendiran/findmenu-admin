@@ -219,17 +219,7 @@ export default function BusinessDetails({ businessId }) {
   }
 
   return (
-    <>
-
-      {/* Header Section */}
-      <div style={{ marginBottom: 32 }}>
-        <Title level={2} style={{ marginBottom: 8, color: '#1890ff' }}>
-          <ShopOutlined /> Business Profile
-        </Title>
-        <Text type="secondary">
-          Manage your business information, branding, and contact details
-        </Text>
-      </div>
+    <>  
 
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <Row gutter={[32, 32]}>
