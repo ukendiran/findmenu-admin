@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 import apiService from "../services/apiService";
 import { updateConfig } from "../store/slices/authSlice";
-import { SaveOutlined, BgColorsOutlined } from "@ant-design/icons";
+import { SaveOutlined } from "@ant-design/icons";
 
 const { Title, Text, Paragraph } = Typography;
 
