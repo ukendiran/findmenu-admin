@@ -49,7 +49,8 @@ const MainCategory = () => {
     if (user?.businessId) {
       fetchCategories(user.businessId);
     }
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.businessId]);
 
   const fetchCategories = useCallback(async (businessId) => {
     try {

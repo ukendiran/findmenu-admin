@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Typography,
   Space,
@@ -51,29 +51,7 @@ const SubCategory = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [recordToDelete, setRecordToDelete] = useState(null);
 
-  useEffect(() => {
-    if (user?.businessId) {
-      fetchSubCategories(user.businessId);
-    }
-  }, [user?.businessId]);
-
-
-
-  const fetchCategories = async (businessId) => {
-    try {
-
-      const response = await apiService.get(`/main-categories`, {
-        businessId,
-      });
-      if (response.data?.data) {
-        setCategory(response.data?.data);
-      }
-    } catch (error) {
-      console.error("Error fetching main categories:", error);
-    }
-  };
-
-  const fetchSubCategories = async (businessId) => {
+  const fetchSubCategories = useCallback(async (businessId) => {
     try {
       setLoading(true)
       const response = await apiService.get(`/sub-categories-with-category`, {
@@ -91,15 +69,41 @@ const SubCategory = () => {
       console.error("Error fetching sub categories:", error);
     } finally {
       setLoading(false);
-
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (user?.businessId) {
+      fetchSubCategories(user.businessId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.businessId]);
+
+
+
+  const fetchCategories = useCallback(async (businessId) => {
+    if (!businessId) return;
+    try {
+      const response = await apiService.get(`/main-categories`, {
+        businessId,
+      });
+      if (response.data?.data) {
+        setCategory(response.data?.data);
+      }
+    } catch (error) {
+      console.error("Error fetching main categories:", error);
+    }
+  }, []);
+
   const showDrawer = (record = null) => {
     setCurrentRecord(record);
     setStatus(record?.status ?? 1); // 1 or 2
     setIsAvailable(record?.isAvailable ?? 1);
     setRemoveImage(false);
-    fetchCategories(user?.businessId)
+    // Only fetch categories if not already loaded
+    if (category.length === 0) {
+      fetchCategories(user?.businessId);
+    }
     if (record) {
       form.setFieldsValue(record);
       setImageFile({

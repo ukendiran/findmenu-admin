@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Typography,
   Space,
@@ -55,12 +55,14 @@ const Items = () => {
     if (user?.businessId) {
       fetchItems(user.businessId);
     }
-  }, [user, business]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.businessId]);
 
 
 
 
-  const fetchCategories = async (businessId) => {
+  const fetchCategories = useCallback(async (businessId) => {
+    if (!businessId) return;
     try {
       const response = await apiService.get(`/main-categories`, {
         businessId,
@@ -71,9 +73,10 @@ const Items = () => {
     } catch (error) {
       console.error("Error fetching categories:", error);
     }
-  };
+  }, []);
 
-  const fetchSubCategories = async (businessId, categoryId) => {
+  const fetchSubCategories = useCallback(async (businessId, categoryId) => {
+    if (!businessId || !categoryId) return;
     try {
       const response = await apiService.get(`/sub-categories`, {
         businessId,
@@ -86,7 +89,7 @@ const Items = () => {
     } catch (error) {
       console.error("Error fetching subcategories:", error);
     }
-  };
+  }, []);
 
   const fetchItems = async (businessId) => {
     try {
@@ -136,13 +139,19 @@ const Items = () => {
   };
 
   const showDrawer = (record = null) => {
-    fetchCategories(user.businessId);
+    // Only fetch categories if not already loaded
+    if (category.length === 0) {
+      fetchCategories(user.businessId);
+    }
     setStatus(record?.status ?? 1); // 1 or 2
     setIsAvailable(record?.isAvailable ?? 1);
     setRemoveImage(false);
     setCurrentRecord(record);
     if (record) {
-      fetchSubCategories(user.businessId, record.categoryId);
+      // Only fetch subcategories if categoryId is available and not already loaded
+      if (record.categoryId && (subCategory.length === 0 || !subCategory.some(sc => sc.categoryId === record.categoryId))) {
+        fetchSubCategories(user.businessId, record.categoryId);
+      }
       form.setFieldsValue(record);
       setImageFile({
         url: checkImageNull(record.image),
