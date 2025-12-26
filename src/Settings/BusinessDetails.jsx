@@ -31,6 +31,7 @@ import {
 } from "@ant-design/icons";
 import apiService from "../services/apiService";
 import { extractErrorMessages } from "../utils/errorHelper";
+import { renderCustomField, setCustomFieldsInForm, prepareCustomFieldsForSubmit } from "../utils/customFieldsHelper.jsx";
 
 const { TextArea } = Input;
 const { Title, Text } = Typography;
@@ -43,6 +44,10 @@ export default function BusinessDetails({ businessId }) {
   const [removeLogo, setRemoveLogo] = useState(false);
   const [removeBanner, setRemoveBanner] = useState(false);
   const [businessData, setBusinessData] = useState(null);
+  const [businessTypes, setBusinessTypes] = useState([]);
+  const [loadingBusinessTypes, setLoadingBusinessTypes] = useState(false);
+  const [businessType, setBusinessType] = useState(null);
+  const [selectedBusinessTypeDetails, setSelectedBusinessTypeDetails] = useState(null);
   const { notification: notificationApi } = App.useApp();
 
   const getFullUrl = (file) => {
@@ -54,18 +59,65 @@ export default function BusinessDetails({ businessId }) {
     return `${apiService.apiUrl}/${file.name || file.url}`;
   };
 
+  const fetchBusinessTypes = useCallback(async () => {
+    try {
+      setLoadingBusinessTypes(true);
+      const response = await apiService.get(`/business-types`, { status: 1 });
+      if (response.data?.success && response.data?.data) {
+        setBusinessTypes(response.data.data);
+      }
+    } catch (error) {
+      // Ignore if request was canceled
+      if (error.code === 'ERR_CANCELED' || error.message === 'canceled') {
+        return;
+      }
+      // Only show user-friendly message, no system error details
+      notificationApi.error({
+        message: "Load Error",
+        description: "Unable to load business types. Please refresh the page.",
+      });
+    } finally {
+      setLoadingBusinessTypes(false);
+    }
+  }, [notificationApi]);
+
+  const fetchBusinessTypeDetails = useCallback(async (businessTypeId) => {
+    if (!businessTypeId) {
+      setSelectedBusinessTypeDetails(null);
+      return;
+    }
+
+    try {
+      const response = await apiService.get(`/business-types/${businessTypeId}`);
+      if (response.data?.success && response.data?.data) {
+        setSelectedBusinessTypeDetails(response.data.data);
+      }
+    } catch (error) {
+      // Ignore if request was canceled
+      if (error.code === 'ERR_CANCELED' || error.message === 'canceled') {
+        return;
+      }
+      console.error("Error fetching business type details:", error);
+    }
+  }, []);
+
   useEffect(() => {
     const fetchBusinessData = async () => {
       try {
         const result = await apiService.get(`/business/${businessId}`);
         const data = result.data.data;
         setBusinessData(data);
+        setBusinessType(data.business_type_id);
 
         setImageFile(data.image ? { name: data.image, url: data.image } : null);
         setBannerImageFile(data.bannerImage ? { name: data.bannerImage, url: data.bannerImage } : null);
         setRemoveLogo(false);
         setRemoveBanner(false);
       } catch (e) {
+        // Ignore if request was canceled
+        if (e.code === 'ERR_CANCELED' || e.message === 'canceled') {
+          return;
+        }
         console.error("Error fetching business data:", e);
       } finally {
         setLoading(false);
@@ -74,18 +126,51 @@ export default function BusinessDetails({ businessId }) {
 
     if (businessId) {
       fetchBusinessData();
+      fetchBusinessTypes();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [businessId]);
+
+  // Fetch business type details when business type changes
+  useEffect(() => {
+    if (businessType) {
+      fetchBusinessTypeDetails(businessType);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessType]);
 
   // Set form values after businessData is loaded and Form is mounted
   useEffect(() => {
     if (businessData && !loading) {
       form.setFieldsValue({
         ...businessData,
-        group: businessData.group?.name || 'N/A'
+        group: businessData.group?.name || 'N/A',
+        business_type_id: businessData.business_type_id || ''
       });
+      
+      // Set custom fields values
+      if (businessData.custom_fields) {
+        setCustomFieldsInForm(form, businessData.custom_fields);
+      }
     }
   }, [businessData, loading, form]);
+
+  const handleBusinessTypeChange = (value) => {
+    setBusinessType(value);
+    // Clear custom fields when business type changes
+    form.setFieldsValue({ custom_fields: {} });
+    // Clear license number when business type changes from restaurant
+    const selectedType = businessTypes.find(type => type.id === value);
+    if (selectedType?.name !== "restaurant") {
+      form.setFieldValue("license_no", "");
+    }
+    // Fetch new business type details
+    if (value) {
+      fetchBusinessTypeDetails(value);
+    } else {
+      setSelectedBusinessTypeDetails(null);
+    }
+  };
 
   const showNotification = useCallback((type, message, description) => {
     notificationApi[type]({ message, description });
@@ -149,10 +234,21 @@ export default function BusinessDetails({ businessId }) {
       const formData = new FormData();
 
       Object.entries(values).forEach(([key, val]) => {
+        // Skip custom_fields as we'll handle it separately
+        if (key === 'custom_fields') return;
+        
         if (val !== undefined && val !== null) {
           formData.append(key, val);
         }
       });
+
+      // Handle custom fields
+      if (values.custom_fields) {
+        const customFieldsJson = prepareCustomFieldsForSubmit(values.custom_fields);
+        if (customFieldsJson) {
+          formData.append("custom_fields", customFieldsJson);
+        }
+      }
 
       formData.append("id", businessData.id);
       formData.append("_method", "PUT");
@@ -178,14 +274,6 @@ export default function BusinessDetails({ businessId }) {
         if (response.data.data?.image) updatedData.image = response.data.data.image;
         if (response.data.data?.bannerImage) updatedData.bannerImage = response.data.data.bannerImage;
         setBusinessData(updatedData);
-
-        // Defer notification
-        setTimeout(() => {
-          notificationApi.success({
-            message: "Updated",
-            description: "Business updated successfully!",
-          });
-        }, 0);
       } else {
         setTimeout(() => {
           notificationApi.error({
@@ -255,15 +343,27 @@ export default function BusinessDetails({ businessId }) {
                 <Col xs={24} sm={12}>
                   <Form.Item
                     label={
-                      <Text strong>Business Type</Text>
+                      <Text strong>
+                        Business Type
+                        <span style={{ color: '#ff4d4f', marginLeft: 4 }}>*</span>
+                      </Text>
                     }
-                    name="businessType"
+                    name="business_type_id"
+                    rules={[{ required: true, message: "Please select a business type" }]}
                   >
-                    <Input
-                      disabled
+                    <Select
                       size="large"
-                      prefix={<ShopOutlined style={{ color: '#999' }} />}
-                    />
+                      placeholder="Select business type"
+                      onChange={handleBusinessTypeChange}
+                      loading={loadingBusinessTypes}
+                      suffixIcon={<ShopOutlined />}
+                    >
+                      {businessTypes.map((type) => (
+                        <Select.Option key={type.id} value={type.id}>
+                          {type.name}
+                        </Select.Option>
+                      ))}
+                    </Select>
                   </Form.Item>
                 </Col>
 
@@ -399,7 +499,7 @@ export default function BusinessDetails({ businessId }) {
                   </Form.Item>
                 </Col>
 
-                {businessData.businessType === 'restaurant' && (
+                {businessTypes.find(type => type.id === businessType)?.name === 'restaurant' && (
                   <Col xs={24} sm={12}>
                     <Form.Item
                       label={<Text strong>FSSAI License No</Text>}
@@ -407,7 +507,7 @@ export default function BusinessDetails({ businessId }) {
                     >
                       <Input
                         size="large"
-                        placeholder="Enter license number"
+                        placeholder="Enter FSSAI license number"
                       />
                     </Form.Item>
                   </Col>
@@ -416,6 +516,32 @@ export default function BusinessDetails({ businessId }) {
             </Card>
           </Col>
         </Row>
+
+        {/* Custom Fields Section */}
+        {selectedBusinessTypeDetails?.fields && selectedBusinessTypeDetails.fields.length > 0 && (
+          <Row gutter={[32, 32]} style={{ marginTop: 8 }}>
+            <Col xs={24}>
+              <Card
+                title={
+                  <span>
+                    <ShopOutlined style={{ marginRight: 8 }} />
+                    Additional Information
+                  </span>
+                }
+                bordered={false}
+                className="custom-card"
+              >
+                <Row gutter={[16, 16]}>
+                  {selectedBusinessTypeDetails.fields.map((field) => (
+                    <Col xs={24} sm={12} key={field.id}>
+                      {renderCustomField(field)}
+                    </Col>
+                  ))}
+                </Row>
+              </Card>
+            </Col>
+          </Row>
+        )}
 
         {/* Media Section */}
         <Row gutter={[32, 32]} style={{ marginTop: 8 }}>

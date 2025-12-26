@@ -41,6 +41,10 @@ const Dashboard = () => {
         setRecentFeedback(sorted);
       }
     } catch (error) {
+      // Ignore if request was canceled
+      if (error.code === 'ERR_CANCELED' || error.message === 'canceled') {
+        return;
+      }
       console.error('Error fetching recent feedback:', error);
       setRecentFeedback([]);
     } finally {
@@ -51,7 +55,8 @@ const Dashboard = () => {
   useEffect(() => {
     getDashboardData();
     getRecentFeedback();
-  }, [getDashboardData, getRecentFeedback]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.businessId]);
 
   return (
     <div>

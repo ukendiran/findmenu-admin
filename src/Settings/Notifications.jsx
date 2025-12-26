@@ -49,8 +49,7 @@ export default function Notifications() {
       setBusinessConfig(response.data.data);
       setLoading(false);
     } catch (error) {
-      message.error("Error fetching business data");
-      console.error(error);
+      message.error("Unable to load business data. Please refresh the page.");
       setLoading(false);
     }
   }, [config.businessId]);
@@ -74,7 +73,11 @@ export default function Notifications() {
   const handleSavePreferences = async () => {
     setIsSaving(true);
     if (!businessConfig.id) {
-      message.error("Error: Configuration ID missing");
+      notificationApi.error({
+        message: "Save Failed",
+        description: "Error: Configuration ID missing",
+      });
+      setIsSaving(false);
       return;
     }
 

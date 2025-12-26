@@ -187,7 +187,7 @@ const MainCategory = () => {
     } catch (error) {
       notificationApi.error({
         message: "Update Failed",
-        description: error.response?.data?.message || "Failed to update category status",
+        description: extractErrorMessages(error, "Failed to update category status"),
 
       });
     }
@@ -245,7 +245,7 @@ const MainCategory = () => {
     } catch (error) {
       notificationApi.error({
         message: "Delete Failed",
-        description: error.response?.data?.message || "Unable to delete category",
+        description: extractErrorMessages(error, "Unable to delete category"),
       });
     } finally {
       setIsDeleteModalOpen(false);

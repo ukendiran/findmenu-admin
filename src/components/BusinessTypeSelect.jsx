@@ -12,7 +12,15 @@ const BusinessTypeSelect = ({ form }) => {
             const types = res.data || [];
             setOptions(types.map(type => ({ label: type, value: type })));
             setLoading(false);
-        }).catch(() => setLoading(false));
+        }).catch((error) => {
+            // Ignore if request was canceled
+            if (error.code === 'ERR_CANCELED' || error.message === 'canceled') {
+                return;
+            }
+            console.error('Error fetching business types:', error);
+            setLoading(false);
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Ensure only 1 tag selected

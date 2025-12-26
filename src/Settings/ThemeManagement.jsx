@@ -78,8 +78,7 @@ export default function ThemeManagement({ businessId }) {
       
       setLoading(false);
     } catch (error) {
-      message.error("Error fetching theme data");
-      console.error(error);
+      message.error("Unable to load theme data. Please refresh the page.");
       setLoading(false);
     }
   }, [config.businessId]);
