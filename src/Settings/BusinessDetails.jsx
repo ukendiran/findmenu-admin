@@ -72,10 +72,7 @@ export default function BusinessDetails({ businessId }) {
         return;
       }
       // Only show user-friendly message, no system error details
-      notificationApi.error({
-        message: "Load Error",
-        description: "Unable to load business types. Please refresh the page.",
-      });
+     
     } finally {
       setLoadingBusinessTypes(false);
     }

@@ -5,6 +5,7 @@ on:
     branches:
       - main   # triggers test deploy
       - test      # triggers live deploy
+      - new-deploy      # triggers live deploy
 
 jobs:
   deploy-test:
@@ -39,7 +40,7 @@ jobs:
           local-dir: dist/
 
   deploy-live:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/new-deploy'
     runs-on: ubuntu-latest
     name: Deploy to Live
     steps:
